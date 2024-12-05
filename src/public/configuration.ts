@@ -45,6 +45,8 @@ export class IConfig {
 }
 
 export function validate(config: Record<string, unknown>) {
+  console.log("CONFIGURATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+  console.log(config)
   const validatedConfig = plainToClass(IConfig, config, {
     enableImplicitConversion: true,
   });
