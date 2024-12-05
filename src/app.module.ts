@@ -25,10 +25,7 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: [
-        `config/${process.env.NODE_ENV || 'development'}.env`,
-        '.env',
-      ],
+      envFilePath: 'config/.env',
       load: [configuration],
       isGlobal: true,
       cache: true,
