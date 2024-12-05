@@ -19,7 +19,7 @@ export const configuration = () =>
       JWT_SECRET: 'MySuperSecret1234!@#$',
 
       FIREBASE_CLIENT_EMAIL: 'firebase-adminsdk-bsnwo@eproprietar-6ccbf.iam.gserviceaccount.com',
-      FIREBASE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDkl3v9U7FTtwF0\n69vLyXadSaD7f58BIVJPF7ZnX/lA+FJCHV4VFpOlNHJyOJxJG8lhoP3SMuDk4uvX\nELPdT8cboZFdZxLLt8wmmo3u5aYEURGfjl4ytBG5UqwQmkqFOxEX+pGcYNdiWTbh\npcq4xFeppKlqNeM4nDMPfpYIzIy12alI2rcHj86OicRzOt/cCyYVoZ4jhbpg3QCS\ngX+kjKNELbvZw8cvs4v4KwwcjQbmQpkp84dGos8TQT7MATciecRltirQAdxTXNUn\nG4HQL2uKlDvZBKBRLExefvrWNpQFqZTd3wMNa3DXNPWWNbN5kE7sRqaQ8V/s1JdL\nvGRn2aA5AgMBAAECggEAN+522JO3Uk/3a8fgFltbif2/hXoDClBAZvja2S1q/AIm\ngmXUJN3Kz4PnMtp2Jw9E9X3iTSHE1ExPv2YnVFHWWoTsYAm92BnHOnTboKYROoIp\niTxZARf9NDatwjw2WqYKty7InRY27Sn+GzUpRo9IEcqn50R7LdlORw7GoC2Iil/a\ntUJPFgDoVnZQbN2Zppf9ILhbsHa0DYzttyQnx8MMuK6gZpq3bdxv/SCE25z+Z+Fh\nO9/iFX9e6USnZDbItvfWSE4aiPAqOOoxJqQ0h8EygFeSRc4mahXk/q7/BGHi0Bij\nImW9G+hc/6jPnXTP/65eqg7N+9dkGV4+UVej0OgseQKBgQD4+O8qiF57r7GLyVzx\n6T0gs+LcK2C7KgFns3u7Yvm/Yc4m/8OHMIj2mS+XGvz/apSMtwky3LgUSKCJVCVM\n19q55V+G2/yqx54M6h0VWXKz+p+8H4iuE4ne5DnhhQAiwesBIZ8Y2q89jzK/n0m7\nWzO1cLeKZD8hSMGDl4sMJWoX9QKBgQDrC0e2/VQzbB7oA/6Zyb/noOSszZnC98g0\nNJY1GFkVK9Qta94RvPafBUTpCuNnaIabN09KV4zmOI8Otll+ZA9bFpdEgiAz+q0u\nIHm1GGYa6MXZPWqrSE1HfyOmX8xAPNk57RJFogpngEVWZG6TfnRhmYyKAjFMu8bF\nc76SqD3wtQKBgHvKAdhK73dd9tAC8YSSLEN7TVuc8b59dy9hbS7RWk3OylpXppcs\nCZ1asu/Vil9QVcXVJ+yzE496QN+nB9i6JlVxd1qtPGaJU8smCAnabI6SGSPHJgUv\nT8iT/zdjEps1gawRVHJeIO1hqqDeCSHvibk37voPN9hLvXO5QHhsjeCVAoGAcGRC\ndKQKYVRwKu3ODufEFhR/hIoD3pDxcNU8hkMQRelhWh7cX4sGOuAgJXeJaec3hn0a\nMyhOPcAJ2DUl8iQSm7Hfv2ih0Xkq2oW47PmvyWpJQSn3GdRG78tB1sq0NntiPCq6\ntAVaCEfz3+3CWlD7gbgU1eFahaC82aoRFLvScokCgYEA7JHZT2WAvLi7pNpTkgFn\nOvG+px/oR4ujwobd949lcmOf9eUBYDcbqpSUxUOEmagjY2+x2Y00czmci26dnjaG\nqPBOIyd4dpMYA3VPYCPIQWTe/AIFsYMRoBYUvjDtrckjVj+V7hfjpAMfEl0JJy3a\ne05ucNNgzkXpzSphDR302MY=\n-----END PRIVATE KEY-----\n'.replace(/\\n/g, '\n'),
+      FIREBASE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDkl3v9U7FTtwF0\n69vLyXadSaD7f58BIVJPF7ZnX/lA+FJCHV4VFpOlNHJyOJxJG8lhoP3SMuDk4uvX\nELPdT8cboZFdZxLLt8wmmo3u5aYEURGfjl4ytBG5UqwQmkqFOxEX+pGcYNdiWTbh\npcq4xFeppKlqNeM4nDMPfpYIzIy12alI2rcHj86OicRzOt/cCyYVoZ4jhbpg3QCS\ngX+kjKNELbvZw8cvs4v4KwwcjQbmQpkp84dGos8TQT7MATciecRltirQAdxTXNUn\nG4HQL2uKlDvZBKBRLExefvrWNpQFqZTd3wMNa3DXNPWWNbN5kE7sRqaQ8V/s1JdL\nvGRn2aA5AgMBAAECggEAN+522JO3Uk/3a8fgFltbif2/hXoDClBAZvja2S1q/AIm\ngmXUJN3Kz4PnMtp2Jw9E9X3iTSHE1ExPv2YnVFHWWoTsYAm92BnHOnTboKYROoIp\niTxZARf9NDatwjw2WqYKty7InRY27Sn+GzUpRo9IEcqn50R7LdlORw7GoC2Iil/a\ntUJPFgDoVnZQbN2Zppf9ILhbsHa0DYzttyQnx8MMuK6gZpq3bdxv/SCE25z+Z+Fh\nO9/iFX9e6USnZDbItvfWSE4aiPAqOOoxJqQ0h8EygFeSRc4mahXk/q7/BGHi0Bij\nImW9G+hc/6jPnXTP/65eqg7N+9dkGV4+UVej0OgseQKBgQD4+O8qiF57r7GLyVzx\n6T0gs+LcK2C7KgFns3u7Yvm/Yc4m/8OHMIj2mS+XGvz/apSMtwky3LgUSKCJVCVM\n19q55V+G2/yqx54M6h0VWXKz+p+8H4iuE4ne5DnhhQAiwesBIZ8Y2q89jzK/n0m7\nWzO1cLeKZD8hSMGDl4sMJWoX9QKBgQDrC0e2/VQzbB7oA/6Zyb/noOSszZnC98g0\nNJY1GFkVK9Qta94RvPafBUTpCuNnaIabN09KV4zmOI8Otll+ZA9bFpdEgiAz+q0u\nIHm1GGYa6MXZPWqrSE1HfyOmX8xAPNk57RJFogpngEVWZG6TfnRhmYyKAjFMu8bF\nc76SqD3wtQKBgHvKAdhK73dd9tAC8YSSLEN7TVuc8b59dy9hbS7RWk3OylpXppcs\nCZ1asu/Vil9QVcXVJ+yzE496QN+nB9i6JlVxd1qtPGaJU8smCAnabI6SGSPHJgUv\nT8iT/zdjEps1gawRVHJeIO1hqqDeCSHvibk37voPN9hLvXO5QHhsjeCVAoGAcGRC\ndKQKYVRwKu3ODufEFhR/hIoD3pDxcNU8hkMQRelhWh7cX4sGOuAgJXeJaec3hn0a\nMyhOPcAJ2DUl8iQSm7Hfv2ih0Xkq2oW47PmvyWpJQSn3GdRG78tB1sq0NntiPCq6\ntAVaCEfz3+3CWlD7gbgU1eFahaC82aoRFLvScokCgYEA7JHZT2WAvLi7pNpTkgFn\nOvG+px/oR4ujwobd949lcmOf9eUBYDcbqpSUxUOEmagjY2+x2Y00czmci26dnjaG\nqPBOIyd4dpMYA3VPYCPIQWTe/AIFsYMRoBYUvjDtrckjVj+V7hfjpAMfEl0JJy3a\ne05ucNNgzkXpzSphDR302MY=\n-----END PRIVATE KEY-----\n',
       FIREBASE_PROJECT_ID: 'eproprietar-6ccbf',
   }
 };
@@ -33,6 +33,7 @@ export enum Environment {
 export class IConfig {
   NODE_ENV: string;
   PORT: number;
+  TEST: boolean;
   JWT_SECRET: string;
   DB_HOST: string;
   DB_USERNAME: string;
@@ -45,8 +46,6 @@ export class IConfig {
 }
 
 export function validate(config: Record<string, unknown>) {
-  console.log("CONFIGURATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-  console.log(config)
   const validatedConfig = plainToClass(IConfig, config, {
     enableImplicitConversion: true,
   });

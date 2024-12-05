@@ -28,16 +28,15 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
       envFilePath: 'config/.env',
       load: [configuration],
       isGlobal: true,
-      cache: true,
-      validate,
+      cache: true
     }),
     TypeOrmModule.forRootAsync({
       useFactory: async (config: ConfigService<IConfig>) => {
         return {
           type: 'postgres',
-          host: 'db.eproprietar-db.supabase.co',
-          port: 5432,
-          username: 'postgres',
+          host: 'aws-0-eu-central-1.pooler.supabase.com',
+          port: 6543,
+          username: 'postgres.blnamwnthkhmglhkdiwo',
           password: 'eproprietar_2024',
           database: 'postgres',
           entities: ENTITIES,
