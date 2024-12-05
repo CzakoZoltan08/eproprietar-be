@@ -8,7 +8,6 @@ import { AnnouncementsModule } from './announcements/announcements.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { FirebaseAuthStrategy } from './public/strategies/firebase-auth.strategy';
 import { HealthModule } from './health/health.module';
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
@@ -55,6 +54,6 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
     AgencyModule,
   ],
   controllers: [AppController],
-  providers: [AppService, FirebaseAuthStrategy],
+  providers: [AppService],
 })
 export class AppModule {}
