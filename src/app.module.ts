@@ -1,23 +1,23 @@
-import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { IConfig, configuration, validate } from './public/configuration';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { HealthModule } from './health/health.module';
-import { configuration, IConfig, validate } from './public/configuration';
-import { User } from './users/entities/user.entity';
-import { UsersModule } from './users/users.module';
+import { Agency } from './agency/entities/agency.entity';
+import { AgencyModule } from './agency/agency.module';
 import { Announcement } from './announcements/entities/announcement.entity';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { FirebaseAuthStrategy } from './public/strategies/firebase-auth.strategy';
+import { HealthModule } from './health/health.module';
+import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Subscription } from './subscription/entities/subscription.entity';
 import { SubscriptionModule } from './subscription/subscription.module';
-import { FirebaseAuthStrategy } from './public/strategies/firebase-auth.strategy';
-import { PassportModule } from '@nestjs/passport';
-import { AuthModule } from './auth/auth.module';
-import { AgencyModule } from './agency/agency.module';
-import { Agency } from './agency/entities/agency.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './users/entities/user.entity';
+import { UsersModule } from './users/users.module';
 
 // todo: add all entities here
 const ENTITIES = [User, Announcement, Subscription, Agency];
@@ -38,11 +38,11 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
       useFactory: async (config: ConfigService<IConfig>) => {
         return {
           type: 'postgres',
-          host: config.get('DB_HOST'),
-          port: config.get('DB_PORT'),
-          username: config.get('DB_USERNAME'),
-          password: config.get('DB_PASSWORD'),
-          database: config.get('DB_DATABASE'),
+          host: 'db.eproprietar-db.supabase.co',
+          port: 5432,
+          username: 'postgres',
+          password: 'eproprietar_2024',
+          database: 'postgres',
           entities: ENTITIES,
           synchronize: true,
           namingStrategy: new SnakeNamingStrategy(),
