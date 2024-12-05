@@ -1,0 +1,31 @@
+Resources:
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: { "Fn::Join": [ ".", [ { "Ref": "ApiGatewayRestApi" }, "execute-api.${self:provider.region}.amazonaws.com" ] ] }
+            Id: ApiGw
+            OriginPath: /${sls:stage}
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+        Enabled: true
+        DefaultCacheBehavior:
+          TargetOriginId: ApiGw
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: true
+            Headers:
+              - Authorization
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            - PUT
+            - PATCH
+            - POST
+            - DELETE
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true

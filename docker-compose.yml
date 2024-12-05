@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  eproprietar-db:
+    container_name: eproprietar-profile-postgres
+    image: postgres:13-alpine
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: eproprietar-db
+    networks:
+      - node-bridge-network
+
+networks:
+  socket-network:
+  node-bridge-network:
+    driver: bridge
+volumes:
+  socket-pgdata:
