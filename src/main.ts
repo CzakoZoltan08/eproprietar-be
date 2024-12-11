@@ -29,7 +29,7 @@ async function bootstrap() {
     origin: ['*'], // Allow specific origins, including localhost
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization',
-    credentials: true, // Allow credentials (cookies, etc.)
+    credentials: false, // Allow credentials (cookies, etc.)
   });
 
   // Use helmet for security
