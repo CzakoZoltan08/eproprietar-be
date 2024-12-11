@@ -16,27 +16,34 @@ let server: Handler | null = null;
 
 async function bootstrap() {
   console.log('Starting application...');
+  
+  // Create the NestJS app
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    cors: {
-      origin: '*',
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-      preflightContinue: false,
-      optionsSuccessStatus: 204,
-      maxAge: 600,
-    },
-    bodyParser: false,
+    bodyParser: false, // Disable the default body parser
   });
-  console.log('Application created...');
 
+  console.log('Application created...');
+  
+  // Enable CORS for all origins (allow localhost and others)
+  app.enableCors({
+    origin: ['*'], // Allow specific origins, including localhost
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
+    credentials: true, // Allow credentials (cookies, etc.)
+  });
+
+  // Use helmet for security
   app.use(helmet());
   app.use(json({ limit: '30mb' }));
   app.use(urlencoded({ extended: true, limit: '30mb' }));
 
+  // Enable API versioning via URI
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
   });
 
+  // Set up validation for incoming data
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -55,6 +62,7 @@ async function bootstrap() {
     }),
   });
 
+  // Set up Swagger for API documentation
   const config = new DocumentBuilder()
     .addBearerAuth()
     .setTitle('Skriptr API')
@@ -63,6 +71,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
+  // Custom route handler for requests to Stripe
   app.use((req: any, res: any, next: any) => {
     if (!req.originalUrl.includes('stripe')) {
       return bodyParser.json({ limit: '50mb' })(req, res, next);
@@ -70,8 +79,11 @@ async function bootstrap() {
     return next();
   });
 
-  app.enableCors();
+  // Initialize the app (loading routes and services)
   await app.init();
+
+  // // Start the application
+  // await app.listen(3001); // or any desired port
 
   const expressApp = app.getHttpAdapter().getInstance();
   server = (req: Request, res: Response, next: NextFunction) => {
