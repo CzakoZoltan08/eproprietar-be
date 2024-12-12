@@ -1,5 +1,6 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { IConfig, configuration, validate } from './public/configuration';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 
 import { Agency } from './agency/entities/agency.entity';
 import { AgencyModule } from './agency/agency.module';
@@ -9,7 +10,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
-import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Subscription } from './subscription/entities/subscription.entity';
@@ -56,4 +56,8 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer.apply(PreflightMiddleware).forRoutes('*'); // Apply to all routes
+  // }
+}
