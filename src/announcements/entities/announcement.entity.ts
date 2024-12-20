@@ -1,4 +1,10 @@
 import {
+  AnnouncementType,
+  ApartamentPartitionings,
+  BalconyTypes,
+  ParkingTypes,
+} from '../../public/enums/announcementTypes.enum';
+import {
   Column,
   CreateDateColumn,
   Entity,
@@ -7,18 +13,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import {
-  AnnouncementType,
-  ApartamentPartitionings,
-  BalconyTypes,
-  ParkingTypes,
-} from '../../public/enums/announcementTypes.enum';
-import { AnnouncementProviderType } from '../../public/enums/providerTypes.enum';
-import { TransactionType } from '../../public/enums/transactionTypes.enum';
-import { CurrencyType } from '../../public/enums/currencyTypes.enum';
-import { User } from '../../users/entities/user.entity';
-import { StatusTypes } from '../../public/enums/statusTypes.enum';
 import { Agency } from '../../agency/entities/agency.entity';
+import { AnnouncementProviderType } from '../../public/enums/providerTypes.enum';
+import { CurrencyType } from '../../public/enums/currencyTypes.enum';
+import { StatusTypes } from '../../public/enums/statusTypes.enum';
+import { TransactionType } from '../../public/enums/transactionTypes.enum';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Announcement {
