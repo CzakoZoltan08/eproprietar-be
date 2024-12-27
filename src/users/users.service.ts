@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  Body,
   forwardRef,
   Inject,
   Injectable,
+  Post,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -20,13 +22,15 @@ export class UsersService {
     private readonly announcementService: AnnouncementsService,
   ) {}
 
-  async create(createUserDto: CreateUserRequestDto) {
+  @Post()
+  async create(@Body() createUserDto: CreateUserRequestDto): Promise<User> {
+    console.log('Incoming CreateUserRequestDto:', createUserDto);
+  
     const foundUser = await this.findByEmail(createUserDto.email);
-
     if (foundUser) {
       throw new BadRequestException('User already exists');
     }
-
+  
     return this.userRepo.save(createUserDto);
   }
 
@@ -82,11 +86,20 @@ export class UsersService {
     return this.userRepo.delete(id);
   }
 
-  findByEmail(email: string) {
-    return this.userRepo.findOne({
+  async findByEmail(email: string): Promise<User | null> {
+    // Validate the input
+    if (!email || typeof email !== 'string') {
+      console.warn('Invalid email provided');
+      return null; // Return null if email is not valid
+    }
+  
+    // Query the repository
+    const user = await this.userRepo.findOne({
       where: {
         email,
       },
     });
+  
+    return user || null;
   }
 }

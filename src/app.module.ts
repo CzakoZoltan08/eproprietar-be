@@ -11,6 +11,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { PassportModule } from '@nestjs/passport';
+import { RequestLoggerMiddleware } from './public/middlewares/request_logger.middleware';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Subscription } from './subscription/entities/subscription.entity';
 import { SubscriptionModule } from './subscription/subscription.module';
@@ -57,7 +58,7 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
   providers: [AppService],
 })
 export class AppModule {
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer.apply(PreflightMiddleware).forRoutes('*'); // Apply to all routes
-  // }
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
 }

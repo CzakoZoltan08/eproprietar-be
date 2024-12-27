@@ -1,7 +1,9 @@
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import admin from 'firebase-admin';
+import express from 'express';
 import helmet from 'helmet';
 
 let server: (req: any, res: any, next: any) => void | null = null;
@@ -20,6 +22,17 @@ async function bootstrap() {
     origin: '*',
     credentials: false,
   });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Remove unknown properties
+      transform: true, // Automatically transform to DTO
+    }),
+  );
+
+  // Custom body parsers
+  app.use(express.json()); // Parse application/json
+  app.use(express.urlencoded({ extended: true })); // Parse application/x-www-form-urlencoded
 
   // app.use(helmet({
   //   crossOriginEmbedderPolicy: false,
