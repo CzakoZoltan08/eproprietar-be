@@ -8,12 +8,14 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { Announcement } from '../../announcements/entities/announcement.entity';
 import { Subscription } from '../../subscription/entities/subscription.entity';
 
 export enum AuthProvider {
   GOOGLE = 'google.com',
   EMAIL = 'email',
+  FACEBOOK = "facebook.com"
 }
 
 @Entity()
