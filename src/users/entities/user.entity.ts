@@ -15,7 +15,10 @@ import { Subscription } from '../../subscription/entities/subscription.entity';
 export enum AuthProvider {
   GOOGLE = 'google.com',
   EMAIL = 'email',
-  FACEBOOK = "facebook.com"
+  FACEBOOK = "facebook.com",
+  PHONE = "phone",
+  YAHOO = "yahoo.com",
+  APPLE = "apple.com"
 }
 
 @Entity()

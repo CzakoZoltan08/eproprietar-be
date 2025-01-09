@@ -28,7 +28,7 @@ export class UsersService {
   
     const foundUser = await this.findByEmail(createUserDto.email);
     if (foundUser) {
-      throw new BadRequestException('User already exists');
+      return foundUser;
     }
   
     return this.userRepo.save(createUserDto);
