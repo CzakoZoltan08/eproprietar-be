@@ -34,11 +34,11 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
       useFactory: async (config: ConfigService<IConfig>) => {
         return {
           type: 'postgres',
-          host: 'aws-0-eu-central-1.pooler.supabase.com',
-          port: 6543,
-          username: 'postgres.blnamwnthkhmglhkdiwo',
-          password: 'eproprietar_2024',
-          database: 'postgres',
+          host: config.get('DB_HOST'),
+          port: config.get('DB_PORT'),
+          username: config.get('DB_USERNAME'),
+          password: config.get('DB_PASSWORD'),
+          database: config.get('DB_DATABASE'),
           entities: ENTITIES,
           synchronize: true,
           namingStrategy: new SnakeNamingStrategy(),
