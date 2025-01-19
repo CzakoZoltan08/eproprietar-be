@@ -23,7 +23,7 @@ export class AnnouncementsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(createAnnouncementDto: CreateAnnouncementDto) {
+  async create(createAnnouncementDto: CreateAnnouncementDto): Promise<Announcement> {
     const firebaseId = createAnnouncementDto?.user?.firebaseId;
     if (!firebaseId) {
       throw new BadRequestException('User firebaseId not provided');

@@ -19,8 +19,9 @@ export class AnnouncementsController {
 
   // @UseGuards(FirebaseAuthGuard)
   @Post()
-  create(@Body() createAnnouncementDto: CreateAnnouncementDto) {
-    return this.announcementsService.create(createAnnouncementDto);
+  async create(@Body() createAnnouncementDto: CreateAnnouncementDto): Promise<Announcement> {
+    var announcement = await this.announcementsService.create(createAnnouncementDto);
+    return announcement;
   }
 
   @Get()

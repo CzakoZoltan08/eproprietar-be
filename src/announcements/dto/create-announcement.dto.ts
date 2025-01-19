@@ -5,8 +5,9 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { User } from '../../users/entities/user.entity';
+
 import { DeepPartial } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 export class CreateAnnouncementDto {
   @IsString()
@@ -108,4 +109,8 @@ export class CreateAnnouncementDto {
   @IsString()
   @IsOptional()
   endDate: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl: string;
 }

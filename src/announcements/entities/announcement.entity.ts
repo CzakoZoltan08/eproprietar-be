@@ -116,6 +116,9 @@ export class Announcement {
   @Column({ nullable: true })
   isExclusivity: boolean;
 
+  @Column({ nullable: true })
+  imageUrl: string;
+
   @ManyToOne(() => User, (user) => user.announcements, {
     nullable: true,
   })
