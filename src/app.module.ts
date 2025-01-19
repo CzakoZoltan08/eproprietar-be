@@ -16,6 +16,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Subscription } from './subscription/entities/subscription.entity';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UploadModule } from './upload/upload.module';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 
@@ -53,6 +54,7 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
     SubscriptionModule,
     PassportModule,
     AgencyModule,
+    UploadModule
   ],
   controllers: [AppController],
   providers: [AppService],

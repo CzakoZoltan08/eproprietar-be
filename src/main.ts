@@ -1,10 +1,11 @@
 import { AppModule } from './app.module';
+import { ConfigOptions } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import admin from 'firebase-admin';
+import { v2 as cloudinary } from 'cloudinary';
 import express from 'express';
-import helmet from 'helmet';
 
 let server: (req: any, res: any, next: any) => void | null = null;
 
@@ -47,6 +48,14 @@ async function bootstrap() {
       projectId: configService.get('FIREBASE_PROJECT_ID'),
     }),
   });
+
+  const cloudinaryConfig: ConfigOptions = {
+    cloud_name: configService.get('CLOUDINARY_CLOUD_NAME'),
+    api_key: configService.get('CLOUDINARY_API_KEY'),
+    api_secret: configService.get('CLOUDINARY_API_SECRET'),
+  };
+
+  cloudinary.config(cloudinaryConfig);
 
   await app.init();
   const expressApp = app.getHttpAdapter().getInstance();
