@@ -8,6 +8,7 @@ import {
   Get,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 import { CloudinaryService } from 'src/public/cloudinary.service';
 
 @Controller('uploads')
@@ -52,10 +53,19 @@ export class UploadController {
       throw new Error('Empty file');
     }
 
+    if (file.size > 100 * 1024 * 1024) { // Check file size (100MB limit)
+      return reject(new Error("File size exceeds 100MB limit"));
+    }
+
     const folder = `users/${userId}/announcements/${announcementId}/${type}s`;
 
-    // Upload the file with automatic optimization
-    const result = await this.cloudinaryService.uploadFile(file, folder);
+    let result: UploadApiResponse | UploadApiErrorResponse;
+    if(type == 'video'){
+      result = await this.cloudinaryService.uploadVideoFile(file, folder);
+    }
+    else{
+      result = await this.cloudinaryService.uploadImageFile(file, folder);
+    }
 
     return {
       message: 'File uploaded successfully',
@@ -66,4 +76,8 @@ export class UploadController {
       public_id: result.public_id,
     };
   }
+}
+
+function reject(arg0: Error) {
+  throw new Error('Function not implemented.');
 }
