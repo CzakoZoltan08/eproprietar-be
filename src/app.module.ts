@@ -11,6 +11,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { PassportModule } from '@nestjs/passport';
+import { PaymentModule } from './payment/payment.module';
 import { RequestLoggerMiddleware } from './public/middlewares/request_logger.middleware';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Subscription } from './subscription/entities/subscription.entity';
@@ -47,6 +48,7 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
       },
       inject: [ConfigService],
     }),
+    PaymentModule,
     HealthModule,
     UsersModule,
     AuthModule,
