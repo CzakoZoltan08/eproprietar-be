@@ -1,45 +1,84 @@
-import * as crypto from 'crypto';
-import * as fs from 'fs';
-import * as path from 'path';
+import { Injectable, Logger } from '@nestjs/common';
 
-import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentService {
-  private readonly publicKeyPath = path.join(__dirname, 'certs/sandbox.2SWO-FOIP-OBMI-EEYU-I2K2.public.cer');
-  private readonly merchantSignature = '2SWO-FOIP-OBMI-EEYU-I2K2';
-  private readonly mobilPayUrl = 'https://sandboxsecure.mobilpay.ro';
+  private readonly stripe: Stripe;
+  private readonly logger = new Logger(PaymentService.name);
 
-  generatePaymentRequest(orderId: string, amount: string, returnUrl: string, confirmUrl: string) {
-    const xmlData = this.buildXmlRequest(orderId, amount, returnUrl, confirmUrl);
-    const encryptedData = this.encryptData(xmlData);
-
-    return {
-      env_key: 'doYuSaxccVMPUR7UrSQAS0-1h5QVrOH3pGUCImWRku2T_M3rrIH0ZsTuHEA=',
-      data: encryptedData,
-      url: this.mobilPayUrl,
-    };
+  constructor(private readonly configService: ConfigService) {
+    this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY'), {
+      apiVersion: '2025-01-27.acacia',
+    });
   }
 
-  private buildXmlRequest(orderId: string, amount: string, returnUrl: string, confirmUrl: string) {
-    return `<order type="card" id="${orderId}" timestamp="${Date.now()}">
-      <signature>${this.merchantSignature}</signature>
-      <url>
-          <return>${returnUrl}</return>
-          <confirm>${confirmUrl}</confirm>
-      </url>
-      <invoice>
-          <currency>RON</currency>
-          <amount>${amount}</amount>
-          <details>Payment for Order ${orderId}</details>
-      </invoice>
-  </order>`;
+  /**
+   * Create a Stripe Checkout session
+   */
+  async createPaymentSession(orderId: string, amount: number, currency: string) {
+    try {
+      const session = await this.stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'payment',
+        line_items: [
+          {
+            price_data: {
+              currency,
+              product_data: {
+                name: `Payment for Announcement ${orderId}`,
+              },
+              unit_amount: amount * 100, // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        metadata: { orderId },
+        success_url: `${this.configService.get<string>('FRONTEND_URL')}/payment-status?orderId=${orderId}&success=true`,
+        cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/create-announcement?failed=true`,
+      });
+
+      return { checkoutUrl: session.url };
+    } catch (error) {
+      this.logger.error(`Error creating payment session: ${(error as Error).message}`);
+      throw new Error('Failed to create payment session');
+    }
   }
 
-  private encryptData(data: string) {
-    const publicKey = fs.readFileSync(this.publicKeyPath, 'utf8');
-    const buffer = Buffer.from(data, 'utf8');
-    const encrypted = crypto.publicEncrypt(publicKey, buffer);
-    return encrypted.toString('base64');
+  /**
+   * Handle Stripe Webhooks
+   */
+  async handleWebhookEvent(event: Stripe.Event) {
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed':
+          const session = event.data.object as Stripe.Checkout.Session;
+          this.logger.log(`Payment successful for Order ID: ${session.metadata.orderId}`);
+
+          // Activate announcement in the database
+          await this.activateAnnouncement(session.metadata.orderId.replace("ANN_", ""));
+          return { success: true, message: 'Payment successful' };
+
+        case 'payment_intent.payment_failed':
+          this.logger.warn(`Payment failed: ${event.data.object.id}`);
+          return { success: false, message: 'Payment failed' };
+
+        default:
+          this.logger.warn(`Unhandled event type: ${event.type}`);
+          return { success: false, message: `Unhandled event type: ${event.type}` };
+      }
+    } catch (error) {
+      this.logger.error(`Error handling webhook event: ${(error as Error).message}`);
+      throw new Error('Failed to process webhook event');
+    }
+  }
+
+  /**
+   * Mock function to activate the announcement
+   */
+  private async activateAnnouncement(announcementId: string) {
+    this.logger.log(`Activating announcement: ${announcementId}`);
+    // TODO: Add logic to update the announcement in the database
   }
 }

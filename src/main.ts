@@ -1,3 +1,5 @@
+import express, { raw } from 'express';
+
 import { AppModule } from './app.module';
 import { ConfigOptions } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
@@ -5,7 +7,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
-import express from 'express';
 
 let server: (req: any, res: any, next: any) => void | null = null;
 
@@ -29,6 +30,16 @@ async function bootstrap() {
       whitelist: true, // Remove unknown properties
       transform: true, // Automatically transform to DTO
     }),
+  );
+
+  // ✅ Middleware to store raw body for Stripe webhook verification
+  app.use(
+    '/payment/webhook',
+    raw({ type: 'application/json' }),
+    (req, res, next) => {
+      req.rawBody = req.body; // Store raw body in req.rawBody
+      next();
+    }
   );
 
   // Custom body parsers
