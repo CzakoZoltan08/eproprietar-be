@@ -79,3 +79,8 @@ Nest is [MIT licensed](LICENSE).
 
 ## RUN NGROK for payment local teting
 ngrok http 3001
+
+## Stripe testing locally
+
+### Webhook forwarding
+stripe listen --forward-to http://localhost:3000/payment/webhook
