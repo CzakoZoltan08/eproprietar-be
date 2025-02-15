@@ -51,6 +51,6 @@ export class AnnouncementsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.announcementsService.remove(+id);
+    return this.announcementsService.remove(id);
   }
 }

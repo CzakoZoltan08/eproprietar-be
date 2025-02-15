@@ -1,17 +1,19 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module, forwardRef } from '@nestjs/common';
 
-import { AnnouncementsService } from './announcements.service';
-import { AnnouncementsController } from './announcements.controller';
-import { Announcement } from './entities/announcement.entity';
-import { UsersModule } from '../users/users.module';
 import { AgencyModule } from '../agency/agency.module';
+import { Announcement } from './entities/announcement.entity';
+import { AnnouncementsController } from './announcements.controller';
+import { AnnouncementsService } from './announcements.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UploadModule } from 'src/upload/upload.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Announcement]),
     forwardRef(() => UsersModule),
     forwardRef(() => AgencyModule),
+    UploadModule,
   ],
 
   controllers: [AnnouncementsController],

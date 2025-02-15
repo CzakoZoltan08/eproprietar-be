@@ -4,16 +4,17 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class CloudinaryService {
-  async getResourcesByFolder(folder: string): Promise<any> {
+  async getResourcesByFolder(folder: string, resourceType: 'image' | 'video' = 'image'): Promise<any> {
     return new Promise((resolve, reject) => {
       cloudinary.api.resources(
         {
           type: 'upload',
-          prefix: folder, // Fetch all resources in this folder
+          prefix: folder,
+          resource_type: resourceType, // Ensure we fetch videos when needed
         },
         (error, result) => {
           if (error) return reject(error);
-          resolve(result.resources); // Return the array of resources
+          resolve(result.resources);
         },
       );
     });
@@ -93,4 +94,30 @@ export class CloudinaryService {
       ).end(file.buffer); // Send the file buffer for upload
     });
   }
+
+  async deleteResources(publicIds: string[], resourceType: 'image' | 'video' = 'image'): Promise<void> {
+    return new Promise((resolve, reject) => {
+      cloudinary.api.delete_resources(
+        publicIds,
+        { resource_type: resourceType }, // Specify resource type explicitly
+        (error, result) => {
+          if (error) return reject(error);
+          resolve();
+        },
+      );
+    });
+  }
+
+  async deleteFolderIfEmpty(folder: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      cloudinary.api.delete_folder(folder, (error, result) => {
+        if (error && error.http_code !== 404) { // Ignore 404 errors (folder not found)
+          console.error(`Error deleting folder ${folder}:`, error);
+          return reject(error);
+        }
+        console.log(`Deleted empty folder: ${folder}`);
+        resolve();
+      });
+    });
+  }  
 }

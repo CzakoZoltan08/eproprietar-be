@@ -1,3 +1,4 @@
+import { CloudinaryService } from '../public/cloudinary.service';
 import {
   BadRequestException,
   forwardRef,
@@ -21,6 +22,7 @@ export class AnnouncementsService {
     private readonly announcementRepo: Repository<Announcement>,
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async create(createAnnouncementDto: CreateAnnouncementDto): Promise<Announcement> {
@@ -37,46 +39,6 @@ export class AnnouncementsService {
   }
 
   findAll() {
-    // return Promise.resolve([
-    //   {
-    //     id: 'a1b2c3d4-e5f6-7890-abcd-1234567890ef',
-    //     announcementType: 'SALE',
-    //     providerType: 'OWNER',
-    //     transactionType: 'BUY',
-    //     title: 'Spacious Apartment in Downtown',
-    //     city: 'New York',
-    //     street: 'Main Street 123',
-    //     price: 350000,
-    //     deleted: false,
-    //     currency: 'EURO',
-    //     apartamentPartitioning: 'OPEN',
-    //     status: 'active',
-    //     comfortLevel: 'High',
-    //     rooms: 3,
-    //     numberOfKitchens: 1,
-    //     surface: 120,
-    //     schema: 'modern',
-    //     description: 'A luxurious 3-room apartment with a great city view.',
-    //     partitioning: 'modern',
-    //     baths: 2,
-    //     floor: 5,
-    //     isNew: true,
-    //     balcony: 'LARGE',
-    //     parking: 'GARAGE',
-    //     stage: 'finished',
-    //     endDate: '2024-12-31',
-    //     isExclusivity: true,
-    //     user: {
-    //       id: 'user123',
-    //       name: 'John Doe',
-    //       email: 'john.doe@example.com',
-    //     },
-    //     agency: null,
-    //     createdAt: new Date('2024-01-01T12:00:00Z'),
-    //     updatedAt: new Date('2024-11-01T12:00:00Z'),
-    //   },
-    // ]);
-
     return this.announcementRepo.find({
       relations: {
         user: true,
@@ -109,7 +71,7 @@ export class AnnouncementsService {
   }
 
   async update(id: string, updateAnnouncementDto: UpdateAnnouncementDto) {
-    const update = await this.announcementRepo.update(
+    await this.announcementRepo.update(
       id,
       updateAnnouncementDto,
     );
@@ -117,7 +79,57 @@ export class AnnouncementsService {
     return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} announcement`;
+  async remove(id: string) {
+    // Fetch the announcement with the user relation to get userId
+    const announcement = await this.announcementRepo.findOne({
+        where: { id },
+        relations: { user: true }, // Ensure the user relation is loaded
+    });
+
+    if (!announcement) {
+        throw new BadRequestException(`Announcement not found.`);
+    }
+
+    if (!announcement.user) {
+        throw new BadRequestException(`User for the announcement not found.`);
+    }
+
+    const userId = announcement.user.id; // Now safely access the user ID
+    const announcementId = id;
+
+    // Define folders for images and videos
+    const imageFolder = `users/${userId}/announcements/${announcementId}/images`;
+    const videoFolder = `users/${userId}/announcements/${announcementId}/videos`;
+    const announcementFolder = `users/${userId}/announcements/${announcementId}`;
+
+    // Delete all related media from Cloudinary
+    await this.deleteFilesInFolder(imageFolder, 'image');
+    await this.deleteFilesInFolder(videoFolder, 'video');
+
+    // Remove announcement from database
+    await this.announcementRepo.delete(id);
+
+    await this.cloudinaryService.deleteFolderIfEmpty(imageFolder); // Deletes images and then folder
+    await this.cloudinaryService.deleteFolderIfEmpty(videoFolder); // Deletes videos and then folder
+    await this.cloudinaryService.deleteFolderIfEmpty(announcementFolder); // Deletes announcement folder
+
+    return `Announcement #${id} and its media have been deleted`;
+  }
+
+  private async deleteFilesInFolder(folder: string, resourceType: 'image' | 'video' = 'image') {
+    try {
+      // Fetch all resources in the folder
+      const resources = await this.cloudinaryService.getResourcesByFolder(folder, resourceType);
+
+      // Extract public_ids of all resources
+      const publicIds = resources.map((file: any) => file.public_id);
+
+      if (publicIds.length > 0) {
+        // Delete all resources in the folder
+        await this.cloudinaryService.deleteResources(publicIds, resourceType);
+      }
+    } catch (error) {
+      console.error(`Error deleting files from Cloudinary folder ${folder}:`, error);
+    }
   }
 }

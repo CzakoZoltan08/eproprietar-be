@@ -84,3 +84,6 @@ ngrok http 3001
 
 ### Webhook forwarding
 stripe listen --forward-to http://localhost:3000/payment/webhook
+
+### Manual failure 
+http://localhost:3000/payment-status?success=false&orderId=d950e1e0-81ff-42b6-8ed4-e083b26488dc
