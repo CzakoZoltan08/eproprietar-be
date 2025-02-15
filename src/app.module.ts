@@ -5,6 +5,7 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { Agency } from './agency/entities/agency.entity';
 import { AgencyModule } from './agency/agency.module';
 import { Announcement } from './announcements/entities/announcement.entity';
+import { AnnouncementsCleanupService } from './announcements/announcements-cleanup.service';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,6 +14,7 @@ import { HealthModule } from './health/health.module';
 import { PassportModule } from '@nestjs/passport';
 import { PaymentModule } from './payment/payment.module';
 import { RequestLoggerMiddleware } from './public/middlewares/request_logger.middleware';
+import { ScheduleModule } from '@nestjs/schedule';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Subscription } from './subscription/entities/subscription.entity';
 import { SubscriptionModule } from './subscription/subscription.module';
@@ -48,6 +50,7 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
       },
       inject: [ConfigService],
     }),
+    ScheduleModule.forRoot(), // Enables scheduling
     PaymentModule,
     HealthModule,
     UsersModule,
@@ -59,7 +62,7 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
     UploadModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AnnouncementsCleanupService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

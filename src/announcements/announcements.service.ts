@@ -5,7 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate, PaginateQuery } from 'nestjs-paginate';
 
@@ -77,6 +77,33 @@ export class AnnouncementsService {
     );
 
     return this.findOne(id);
+  }
+
+  async removeByStatusAndTime(status: string = 'pending', hours: number = 24) {
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - hours);
+
+    // Find pending announcements older than 24 hours
+    const expiredAnnouncements = await this.announcementRepo.find({
+      where: {
+        status: status, // Ensure the field matches your entity (change if necessary)
+        createdAt: LessThan(twentyFourHoursAgo),
+      },
+      relations: { user: true }, // Ensure user relation is loaded
+    });
+
+    let deletedCount = 0;
+    
+    for (const announcement of expiredAnnouncements) {
+      const userId = announcement.user?.id;
+      if (!userId) continue;
+
+      const announcementId = announcement.id;
+      await this.remove(announcementId)
+      deletedCount++;
+    }
+
+    return deletedCount;
   }
 
   async remove(id: string) {
