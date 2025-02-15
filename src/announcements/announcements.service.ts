@@ -49,11 +49,18 @@ export class AnnouncementsService {
   async findAllPaginated(query: PaginateQuery) {
     const config = PaginateConfigAnnouncements;
 
-    const paginated = await paginate<Announcement>(
-      query,
-      this.announcementRepo,
-      config,
-    );
+    const queryBuilder = this.announcementRepo.createQueryBuilder("announcement");
+
+    // Apply filters if present in the request
+    if (query.filter?.status) {
+        console.log("Filtering by status:", query.filter.status); // Debugging line
+
+        const allowedStatuses = (typeof query.filter.status === 'string' ? query.filter.status : query.filter.status.join(',')).replace("$in:", "").split(",");
+
+        queryBuilder.andWhere("announcement.status IN (:...status)", { status: allowedStatuses });
+    }
+
+    const paginated = await paginate<Announcement>(query, queryBuilder, config);
 
     return paginated;
   }
