@@ -15,28 +15,36 @@ import { CloudinaryService } from 'src/public/cloudinary.service';
 export class UploadController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  @Get(':userId/:announcementId')
+  @Get(":userId/:announcementId")
   async getOptimizedResources(
-    @Param('userId') userId: string,
-    @Param('announcementId') announcementId: string,
+  @Param("userId") userId: string,
+  @Param("announcementId") announcementId: string
   ) {
     const folder = `users/${userId}/announcements/${announcementId}`;
-    const resources = await this.cloudinaryService.getResourcesByFolder(folder);
 
-    // Map and apply optimization to each resource
-    const optimizedResources = resources.map((resource) => ({
+    // Fetch images and videos separately
+    const [imageResources, videoResources] = await Promise.all([
+      this.cloudinaryService.getResourcesByFolder(folder, "image"),
+      this.cloudinaryService.getResourcesByFolder(folder, "video"),
+    ]);
+
+    // Merge both resources
+    const allResources = [...imageResources, ...videoResources];
+
+    // Map and apply optimization
+    const optimizedResources = allResources.map((resource) => ({
       original_url: resource.secure_url, // Original URL (unoptimized)
       optimized_url: this.cloudinaryService.getOptimizedUrl(
         resource.public_id,
-        resource.resource_type as 'image' | 'video',
+        resource.resource_type as "image" | "video"
       ),
-      type: resource.resource_type, // image or video
+      type: resource.resource_type, // "image" or "video"
       format: resource.format, // File format
       public_id: resource.public_id, // Cloudinary public ID
     }));
 
     return {
-      message: 'Optimized resources fetched successfully',
+      message: "Optimized resources fetched successfully",
       resources: optimizedResources,
     };
   }
