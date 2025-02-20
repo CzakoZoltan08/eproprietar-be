@@ -1,6 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+import { ApiProperty } from '@nestjs/swagger';
 import { AuthProvider } from '../entities/user.entity';
 
 export class CreateUserRequestDto {
@@ -12,6 +13,11 @@ export class CreateUserRequestDto {
   @IsString()
   @IsNotEmpty()
   lastName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  role: string;
 
   @ApiProperty()
   @IsOptional()
