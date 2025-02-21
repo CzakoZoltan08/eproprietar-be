@@ -21,6 +21,9 @@ export const configuration = () =>
       FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
       FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+
+      SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+      SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
   }
 };
 
@@ -46,6 +49,8 @@ export class IConfig {
   CLOUDINARY_CLOUD_NAME: string;
   CLOUDINARY_API_KEY: string;
   CLOUDINARY_API_SECRET: string;
+  SENDGRID_API_KEY: string;
+  SENDGRID_FROM_EMAIL: string;
 }
 
 export function validate(config: Record<string, unknown>) {

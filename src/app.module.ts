@@ -11,6 +11,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
+import { MailModule } from './mail/mail.module';
 import { PassportModule } from '@nestjs/passport';
 import { PaymentModule } from './payment/payment.module';
 import { RequestLoggerMiddleware } from './public/middlewares/request_logger.middleware';
@@ -59,7 +60,8 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
     SubscriptionModule,
     PassportModule,
     AgencyModule,
-    UploadModule
+    UploadModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService, AnnouncementsCleanupService],
