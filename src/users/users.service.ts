@@ -4,14 +4,19 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  NotFoundException,
   Post,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+import { AuthProvider, User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { CreateUserRequestDto } from './dto/create-user-request.dto';
+import { CreateUserRequestDto, CreateUserResponseDto } from './dto/create-user-request.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AnnouncementsService } from '../announcements/announcements.service';
+import { CreateFirebaseUserDto } from './dto/create-firebase-user.dto';
+import * as admin from 'firebase-admin';
+import * as crypto from 'crypto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +25,9 @@ export class UsersService {
     private readonly userRepo: Repository<User>,
     @Inject(forwardRef(() => AnnouncementsService))
     private readonly announcementService: AnnouncementsService,
+    @Inject('FIREBASE_ADMIN')
+    private readonly firebaseAdmin: typeof admin,
+    private readonly mailService: MailService,
   ) {}
 
   @Post()
@@ -32,6 +40,63 @@ export class UsersService {
     }
   
     return this.userRepo.save(createUserDto);
+  }
+
+  async createFirebaseUser(
+    createFirebaseUserDto: CreateFirebaseUserDto,
+  ): Promise<CreateUserResponseDto> {
+    const { email, firstName, lastName } = createFirebaseUserDto;
+
+    // Generate a one-time password (e.g., a 16-character hex string)
+    const generatedPassword = require('crypto')
+      .randomBytes(8)
+      .toString('hex');
+
+    try {
+      // Create the user in Firebase Auth using the Admin SDK
+      const firebaseUser = await this.firebaseAdmin.auth().createUser({
+        email,
+        password: generatedPassword,
+        displayName: `${firstName} ${lastName}`,
+      });
+
+      // Prepare the DTO to create the user in your own DB.
+      const newUserDto: CreateUserRequestDto = {
+        email,
+        firstName,
+        lastName,
+        firebaseId: firebaseUser.uid,
+        authProvider: AuthProvider.EMAIL,
+        role: 'user',
+        phoneNumber: '',
+        favourites: [],
+      };
+
+      // Insert the user into your database using your existing logic.
+      const newUser = await this.create(newUserDto);
+      const displayName = `${newUser.firstName} ${newUser.lastName}`;
+
+      // Send an email with the login credentials.
+      await this.mailService.sendUserCredentials(
+        newUser.email,
+        newUser.firstName,
+        newUser.email, // assuming email is used as username
+        generatedPassword,
+      );
+
+      // Return the newly created user record including the firebaseId.
+      const responseDto: CreateUserResponseDto = {
+        id: newUser.id,
+        email: newUser.email,
+        displayName: displayName,
+        firebaseId: newUser.firebaseId,
+        phoneNumber: newUser.phoneNumber,
+      };
+
+      return responseDto;
+    } catch (error) {
+      throw error;
+    }
   }
 
   findAll() {
@@ -83,6 +148,24 @@ export class UsersService {
   }
 
   async delete(id: string) {
+    // Retrieve the user from the DB
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    // If the user has a firebaseId, delete the Firebase Auth user as well
+    if (user.firebaseId) {
+      try {
+        await this.firebaseAdmin.auth().deleteUser(user.firebaseId);
+      } catch (error) {
+        console.error(`Failed to delete Firebase user with ID ${user.firebaseId}`, error);
+        // Optionally, you could throw an error here to prevent local deletion
+        throw new BadRequestException('Error deleting user from Firebase.');
+      }
+    }
+  
+    // Delete the user from your local DB
     return this.userRepo.delete(id);
   }
 

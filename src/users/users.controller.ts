@@ -18,6 +18,7 @@ import {
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
+import { CreateFirebaseUserDto } from './dto/create-firebase-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -29,6 +30,13 @@ export class UsersController {
   @ApiOkResponse({ type: CreateUserResponseDto })
   create(@Body() createUserDto: CreateUserRequestDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Post('/firebase')
+  @UseInterceptors(new TransformInterceptor(CreateUserResponseDto))
+  @ApiOkResponse({ type: CreateUserResponseDto })
+  createFirebase(@Body() createFirebaseUserDto: CreateFirebaseUserDto) {
+    return this.usersService.createFirebaseUser(createFirebaseUserDto);
   }
 
   // @UseGuards(AuthGuard)

@@ -5,7 +5,6 @@ import { ConfigOptions } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
 
 let server: (req: any, res: any, next: any) => void | null = null;
@@ -46,19 +45,11 @@ async function bootstrap() {
   app.use(express.json()); // Parse application/json
   app.use(express.urlencoded({ extended: true })); // Parse application/x-www-form-urlencoded
 
-  // app.use(helmet({
+  // app.use(helmet({ 
   //   crossOriginEmbedderPolicy: false,
   // }));
 
   const configService = app.get(ConfigService);
-
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      clientEmail: configService.get('FIREBASE_CLIENT_EMAIL'),
-      privateKey: configService.get<string>('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
-      projectId: configService.get('FIREBASE_PROJECT_ID'),
-    }),
-  });
 
   const cloudinaryConfig: ConfigOptions = {
     cloud_name: configService.get('CLOUDINARY_CLOUD_NAME'),

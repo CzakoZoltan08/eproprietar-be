@@ -28,4 +28,22 @@ export class MailService {
       },
     });
   }
+
+  async sendUserCredentials(
+    to: string,
+    name: string,
+    username: string,
+    password: string,
+  ) {
+    await this.mailerService.sendMail({
+      to,
+      subject: 'Your New Account Details',
+      template: 'new-user-notification', // templates/new-user-notification.hbs
+      context: {
+        name,
+        username,
+        password,
+      },
+    });
+  }
 }
