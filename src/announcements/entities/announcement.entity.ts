@@ -9,11 +9,13 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { Agency } from '../../agency/entities/agency.entity';
+import { AnnouncementPayment } from 'src/payment/entities/announcement-payment.entity';
 import { AnnouncementProviderType } from '../../public/enums/providerTypes.enum';
 import { CurrencyType } from '../../public/enums/currencyTypes.enum';
 import { StatusTypes } from '../../public/enums/statusTypes.enum';
@@ -128,6 +130,14 @@ export class Announcement {
     nullable: true,
   })
   agency: Agency;
+
+  @OneToMany(() => AnnouncementPayment, (payment) => payment.announcement, {
+    cascade: true,
+  })
+  payments: AnnouncementPayment[];
+
+  @Column({ default: false })
+  isPromoted: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
