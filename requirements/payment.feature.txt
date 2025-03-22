@@ -1,0 +1,22 @@
+In a real estate listing webpage, NestJS project, we have to implement payment packages. 
+We have the following roles: user and agency.
+For now we focus on normal users. 
+We have multiple types of announcements: owner, ensemble, agency, and franchise, but for now we focus only on owner and ensemble.
+For normal users we have a page with list of announcements and for ensembles we have a separate landing page with details about the company and the buildings
+
+For owners, we have the following packages for showing the announcement on the listing page:
+1. Free for a few days
+2. 7 days euros or 35 ron
+3. 15 days euros or 75 ron
+4. Unlimited for 18 euros - until the property is sold/rented out
+
+We also need a strategy to promote some of the user announcements:
+1. Promote 7 days - 5 euro
+2. Promote 15 days - 7 euro
+3. Promote 30 days - 10 euro
+
+For ensemble/residential (companies that build multiple properties):
+1. 3 months, 450 euro 
+2. 6 months, 600 euro 
+3. 12 months, 900 euro
+All the announcements created by an ensemble will be listed in the apartment lists
