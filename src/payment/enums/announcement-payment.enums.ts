@@ -13,3 +13,8 @@ export enum PromotionPackageType {
     PROMOTE_15_DAYS = 'promote_15_days',
     PROMOTE_30_DAYS = 'promote_30_days',
 }
+
+export enum PackageAudience {
+    NORMAL = 'normal',
+    ENSEMBLE = 'ensemble',
+}

@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { PaymentPackageType, PromotionPackageType } from 'src/payment/enums/announcement-payment.enums';
+import { PackageAudience, PaymentPackageType, PromotionPackageType } from 'src/payment/enums/announcement-payment.enums';
 
 import { AnnouncementPackage } from 'src/payment/entities/announcement-package.entity';
 import { CurrencyType } from 'src/public/enums/currencyTypes.enum';
@@ -32,6 +32,7 @@ export class SeederService implements OnModuleInit {
         currency: CurrencyType.EURO,
         durationDays: 3,
         packageType: PaymentPackageType.FREE,
+        targetAudience: PackageAudience.NORMAL,
       },
       {
         label: '7 Days Package',
@@ -39,6 +40,7 @@ export class SeederService implements OnModuleInit {
         currency: CurrencyType.EURO,
         durationDays: 7,
         packageType: PaymentPackageType.DAYS_7,
+        targetAudience: PackageAudience.NORMAL,
       },
       {
         label: '15 Days Package',
@@ -46,6 +48,7 @@ export class SeederService implements OnModuleInit {
         currency: CurrencyType.EURO,
         durationDays: 15,
         packageType: PaymentPackageType.DAYS_15,
+        targetAudience: PackageAudience.NORMAL,
       },
       {
         label: 'Unlimited Package',
@@ -53,6 +56,7 @@ export class SeederService implements OnModuleInit {
         currency: CurrencyType.EURO,
         durationDays: null,
         packageType: PaymentPackageType.UNLIMITED,
+        targetAudience: PackageAudience.NORMAL,
       },
       {
         label: '3 Months Ensemble',
@@ -60,6 +64,7 @@ export class SeederService implements OnModuleInit {
         currency: CurrencyType.EURO,
         durationDays: 90,
         packageType: PaymentPackageType.MONTHS_3,
+        targetAudience: PackageAudience.ENSEMBLE,
       },
       {
         label: '6 Months Ensemble',
@@ -67,6 +72,7 @@ export class SeederService implements OnModuleInit {
         currency: CurrencyType.EURO,
         durationDays: 180,
         packageType: PaymentPackageType.MONTHS_6,
+        targetAudience: PackageAudience.ENSEMBLE,
       },
       {
         label: '12 Months Ensemble',
@@ -74,6 +80,7 @@ export class SeederService implements OnModuleInit {
         currency: CurrencyType.EURO,
         durationDays: 365,
         packageType: PaymentPackageType.MONTHS_12,
+        targetAudience: PackageAudience.ENSEMBLE,
       },
     ];
 

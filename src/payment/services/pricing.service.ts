@@ -17,8 +17,8 @@ export class PricingService {
     private readonly discountRepo: Repository<Discount>,
   ) {}
 
-  async getAnnouncementPackages(userId: string) {
-    const packages = await this.packageRepo.find({ where: { active: true } });
+  async getAnnouncementPackages(userId: string, targetAudience) {
+    const packages = await this.packageRepo.find({ where: { active: true, targetAudience: targetAudience } });
 
     const enhanced = await Promise.all(
       packages.map((p) => this.attachPackageDiscount(p, userId))

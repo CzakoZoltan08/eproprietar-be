@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { PricingService } from './services/pricing.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { PackageAudience } from './enums/announcement-payment.enums';
 
 @Controller('payment')
 export class PaymentController {
@@ -15,9 +16,12 @@ export class PaymentController {
   ) {}
 
   @Get('/announcement-packages')
-  async getAnnouncementPackages(@Query('userId') userId: string) {
+  async getAnnouncementPackages(
+    @Query('userId') userId: string,
+    @Query('audience') audience: PackageAudience = PackageAudience.NORMAL
+  ) {
     if (!userId) return null;
-    return this.pricingService.getAnnouncementPackages(userId);
+    return this.pricingService.getAnnouncementPackages(userId, audience);
   }
 
   @Get('/promotion-packages')

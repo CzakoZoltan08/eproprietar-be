@@ -5,7 +5,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { PaymentPackageType, PromotionPackageType } from '../enums/announcement-payment.enums';
+import { PackageAudience, PaymentPackageType, PromotionPackageType } from '../enums/announcement-payment.enums';
 
 import { CurrencyType } from '../../public/enums/currencyTypes.enum';
 
@@ -32,6 +32,9 @@ import { CurrencyType } from '../../public/enums/currencyTypes.enum';
     @Column({ type: 'enum', enum: PromotionPackageType, nullable: true })
     promotionType?: PromotionPackageType;
   
+    @Column({ type: 'enum', enum: PackageAudience })
+    targetAudience: PackageAudience;
+
     @Column({ default: true })
     active: boolean;
   
