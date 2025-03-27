@@ -90,29 +90,17 @@ export class PaymentService {
         session = event.data.object as Stripe.Checkout.Session;
         metadata = session.metadata;
         orderId = metadata?.orderId;
-      } else if (event.type.startsWith('payment_intent.')) {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        const sessions = await this.stripe.checkout.sessions.list({
-          payment_intent: paymentIntent.id,
-          limit: 1,
-        });
-
-        if (sessions.data.length > 0) {
-          session = sessions.data[0];
-          metadata = session.metadata;
-          orderId = metadata?.orderId;
-        }
-      }
-
-      if (!orderId) {
-        this.logger.error(`Missing announcementId in webhook event.`);
-        return { success: false, message: 'Missing announcementId' };
       }
 
       switch (event.type) {
         case 'checkout.session.completed': {
+          if (!orderId) {
+            this.logger.error(`Missing announcementId in webhook event.`);
+            return { success: false, message: 'Missing announcementId' };
+          }
+
           const amount = session?.amount_total ? session.amount_total / 100 : 0;
-          const currency = session?.currency?.toUpperCase() as CurrencyType;
+          const currency = session?.currency?.toLowerCase() as CurrencyType;
 
           await this.announcementPaymentService.saveSuccessfulPayment({
             announcementId: orderId,

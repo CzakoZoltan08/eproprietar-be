@@ -27,6 +27,8 @@ export class AnnouncementPaymentService {
     originalAmount?: number;
     discountCode?: string;
     currency: CurrencyType;
+    promotionId?: string,
+    promotionDiscountCode?: string
   }) {
     const announcement = await this.announcementRepo.findOneByOrFail({ id: data.announcementId });
     const pkg = await this.packageRepo.findOneByOrFail({ id: data.packageId });

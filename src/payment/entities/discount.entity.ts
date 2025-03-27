@@ -36,13 +36,13 @@ import { PaymentPackageType, PromotionPackageType } from '../enums/announcement-
     @Column({ type: 'int', nullable: true })
     usagePerUserLimit?: number;
   
-    @Column({ type: 'simple-array', nullable: true })
+    @Column("text", { array: true, nullable: true })
     allowedUserIds?: string[];
   
-    @Column({ type: 'simple-array', nullable: true })
+    @Column("text", { array: true, nullable: true })
     applicablePackageTypes?: PaymentPackageType[];
-  
-    @Column({ type: 'simple-array', nullable: true })
+
+    @Column("text", { array: true, nullable: true })
     applicablePromotionTypes?: PromotionPackageType[];
   
     @Column({ default: true })

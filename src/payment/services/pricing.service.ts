@@ -23,13 +23,12 @@ export class PricingService {
       return [pkgs, promos];
     }, [[], []]);
 
+    const resultedPackages = await Promise.all(packages.map(async (p) => this.attachDiscount(p, userId)));
+    const resultedPromotions = await Promise.all(promotions.map(async (p) => this.attachDiscount(p, userId)));
+
     return {
-      packages: await Promise.all(
-        packages.map(async (p) => this.attachDiscount(p, userId)),
-      ),
-      promotions: await Promise.all(
-        promotions.map(async (p) => this.attachDiscount(p, userId)),
-      ),
+      packages: resultedPackages,
+      promotions: resultedPromotions
     };
   }
 
@@ -65,7 +64,7 @@ export class PricingService {
       .createQueryBuilder('discount')
       .where(':now BETWEEN discount.validFrom AND discount.validTo', { now })
       .andWhere('discount.active = true')
-      .andWhere(':type = ANY(discount.applicablePackageTypes)', { type: packageType })
+      .andWhere(':type = ANY(discount.applicablePackageTypes)', { type: [packageType] })
       .orderBy('discount.createdAt', 'DESC')
       .getOne();
   }
@@ -77,7 +76,7 @@ export class PricingService {
       .createQueryBuilder('discount')
       .where(':now BETWEEN discount.validFrom AND discount.validTo', { now })
       .andWhere('discount.active = true')
-      .andWhere(':type = ANY(discount.applicablePromotionTypes)', { type: promotionType })
+      .andWhere(':type = ANY(discount.applicablePromotionTypes)', { type: [promotionType] })
       .orderBy('discount.createdAt', 'DESC')
       .getOne();
   }

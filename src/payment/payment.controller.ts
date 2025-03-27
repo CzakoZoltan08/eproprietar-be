@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers, Req, Res, Get } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Req, Res, Get, Query } from '@nestjs/common';
 import { Response } from 'express';
 import { PaymentService } from './payment.service';
 import { ConfigService } from '@nestjs/config';
@@ -15,8 +15,12 @@ export class PaymentController {
   ) {}
 
   @Get('/announcement-options')
-  async getPricingOptions(@Req() req) {
-    return this.pricingService.getPricingOptions(req.user.id);
+  async getPricingOptions(@Query('userId') userId: string) {
+    if(!userId) {
+      return null
+    }
+
+    return this.pricingService.getPricingOptions(userId);
   }
 
   @Post('create')

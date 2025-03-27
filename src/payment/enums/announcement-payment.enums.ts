@@ -3,6 +3,9 @@ export enum PaymentPackageType {
     DAYS_7 = '7_days',
     DAYS_15 = '15_days',
     UNLIMITED = 'unlimited',
+    MONTHS_3 = '3_months',
+    MONTHS_6 = '6_months',
+    MONTHS_12 = '12_months',
 }
 
 export enum PromotionPackageType {

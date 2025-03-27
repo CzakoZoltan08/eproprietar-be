@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } f
 import { PaymentPackageType, PromotionPackageType } from '../enums/announcement-payment.enums';
 
 import { Announcement } from '../../announcements/entities/announcement.entity';
+import { AnnouncementPackage } from './announcement-package.entity';
 import { CurrencyType } from '../../public/enums/currencyTypes.enum';
 import { Discount } from './discount.entity';
 
@@ -36,6 +37,9 @@ export class AnnouncementPayment {
 
   @ManyToOne(() => Announcement, (a) => a.payments)
   announcement: Announcement;
+
+  @ManyToOne(() => AnnouncementPackage, { eager: true })
+  package: AnnouncementPackage;
 
   @ManyToOne(() => Discount, { nullable: true })
   discount?: Discount;

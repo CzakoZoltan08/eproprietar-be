@@ -5,17 +5,21 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { Agency } from './agency/entities/agency.entity';
 import { AgencyModule } from './agency/agency.module';
 import { Announcement } from './announcements/entities/announcement.entity';
+import { AnnouncementPackage } from './payment/entities/announcement-package.entity';
+import { AnnouncementPayment } from './payment/entities/announcement-payment.entity';
 import { AnnouncementsCleanupService } from './announcements/announcements-cleanup.service';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { Discount } from './payment/entities/discount.entity';
 import { HealthModule } from './health/health.module';
 import { MailModule } from './mail/mail.module';
 import { PassportModule } from '@nestjs/passport';
 import { PaymentModule } from './payment/payment.module';
 import { RequestLoggerMiddleware } from './public/middlewares/request_logger.middleware';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SeederModule } from './seeder/seeder.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Subscription } from './subscription/entities/subscription.entity';
 import { SubscriptionModule } from './subscription/subscription.module';
@@ -25,7 +29,7 @@ import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 
 // todo: add all entities here
-const ENTITIES = [User, Announcement, Subscription, Agency];
+const ENTITIES = [User, Announcement, Subscription, Agency, AnnouncementPackage, AnnouncementPayment, Discount];
 
 @Module({
   imports: [
@@ -62,6 +66,7 @@ const ENTITIES = [User, Announcement, Subscription, Agency];
     AgencyModule,
     UploadModule,
     MailModule,
+    SeederModule
   ],
   controllers: [AppController],
   providers: [AppService, AnnouncementsCleanupService],
