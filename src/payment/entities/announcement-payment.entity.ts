@@ -5,6 +5,7 @@ import { Announcement } from '../../announcements/entities/announcement.entity';
 import { AnnouncementPackage } from './announcement-package.entity';
 import { CurrencyType } from '../../public/enums/currencyTypes.enum';
 import { Discount } from './discount.entity';
+import { PromotionPackage } from './promotion-package.entity';
 
 @Entity()
 export class AnnouncementPayment {
@@ -23,23 +24,23 @@ export class AnnouncementPayment {
   @Column({ type: 'decimal', nullable: true })
   discountAmount?: number;
 
-  @Column({ type: 'enum', enum: PaymentPackageType, nullable: true })
-  packageType?: PaymentPackageType;
-
-  @Column({ type: 'enum', enum: PromotionPackageType, nullable: true })
-  promotionType?: PromotionPackageType;
-
   @Column({ type: 'timestamp' })
   startDate: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  endDate?: Date;
+  packageEndDate?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  promotionEndDate?: Date;
 
   @ManyToOne(() => Announcement, (a) => a.payments)
   announcement: Announcement;
 
   @ManyToOne(() => AnnouncementPackage, { eager: true })
   package: AnnouncementPackage;
+
+  @ManyToOne(() => PromotionPackage, { nullable: true })
+  promotion?: PromotionPackage;
 
   @ManyToOne(() => Discount, { nullable: true })
   discount?: Discount;

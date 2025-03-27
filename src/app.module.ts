@@ -17,6 +17,7 @@ import { HealthModule } from './health/health.module';
 import { MailModule } from './mail/mail.module';
 import { PassportModule } from '@nestjs/passport';
 import { PaymentModule } from './payment/payment.module';
+import { PromotionPackage } from './payment/entities/promotion-package.entity';
 import { RequestLoggerMiddleware } from './public/middlewares/request_logger.middleware';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SeederModule } from './seeder/seeder.module';
@@ -29,7 +30,7 @@ import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 
 // todo: add all entities here
-const ENTITIES = [User, Announcement, Subscription, Agency, AnnouncementPackage, AnnouncementPayment, Discount];
+const ENTITIES = [User, Announcement, Subscription, Agency, PromotionPackage, AnnouncementPackage, AnnouncementPayment, Discount];
 
 @Module({
   imports: [

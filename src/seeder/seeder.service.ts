@@ -5,6 +5,7 @@ import { AnnouncementPackage } from 'src/payment/entities/announcement-package.e
 import { CurrencyType } from 'src/public/enums/currencyTypes.enum';
 import { DataSource } from 'typeorm';
 import { Discount } from 'src/payment/entities/discount.entity';
+import { PromotionPackage } from 'src/payment/entities/promotion-package.entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -81,12 +82,12 @@ export class SeederService implements OnModuleInit {
   }
 
   async seedPromotions() {
-    const repo = this.dataSource.getRepository(AnnouncementPackage);
+    const repo = this.dataSource.getRepository(PromotionPackage);
 
     const count = await repo.count();
-    if (count > 7) return;
+    if (count > 0) return;
 
-    const promotions: Partial<AnnouncementPackage>[] = [
+    const promotions: Partial<PromotionPackage>[] = [
       {
         label: 'Promote 7 Days',
         price: 5,

@@ -28,6 +28,8 @@ export class PaymentService {
     packageId: string,
     discountCode?: string,
     originalAmount?: number,
+    promotionId?: string,
+    promotionDiscountCode?: string
   ) {
     try {
       if (amount === 0) {
@@ -38,6 +40,8 @@ export class PaymentService {
           originalAmount: 0,
           discountCode,
           currency: currency.toUpperCase() as CurrencyType,
+          promotionId,
+          promotionDiscountCode
         });
 
         await this.updateAnnouncementStatus(orderId, 'active');
@@ -68,6 +72,8 @@ export class PaymentService {
           packageId,
           discountCode: discountCode || '',
           originalAmount: originalAmount?.toString() || '',
+          promotionId: promotionId || '',
+          promotionDiscountCode: promotionDiscountCode || '',
         },
         success_url: `${this.configService.get<string>('FRONTEND_URL')}/payment-status?orderId=${orderId}&success=true`,
         cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/create-announcement?failed=true`,
@@ -105,10 +111,12 @@ export class PaymentService {
           await this.announcementPaymentService.saveSuccessfulPayment({
             announcementId: orderId,
             packageId: metadata.packageId,
-            amount,
+            amount: amount,
             originalAmount: metadata.originalAmount ? parseFloat(metadata.originalAmount) : undefined,
             discountCode: metadata.discountCode || undefined,
-            currency,
+            currency: currency,
+            promotionId: metadata.promotionId || undefined,
+            promotionDiscountCode: metadata.promotionDiscountCode || undefined,
           });
 
           await this.updateAnnouncementStatus(orderId, 'active');

@@ -6,6 +6,7 @@ import { Announcement } from "src/announcements/entities/announcement.entity";
 import { Discount } from "../entities/discount.entity";
 import { AnnouncementPackage } from "../entities/announcement-package.entity";
 import { Repository } from "typeorm";
+import { PromotionPackage } from "../entities/promotion-package.entity";
 
 @Injectable()
 export class AnnouncementPaymentService {
@@ -17,7 +18,9 @@ export class AnnouncementPaymentService {
     @InjectRepository(Discount)
     private readonly discountRepo: Repository<Discount>,
     @InjectRepository(AnnouncementPackage)
-    private readonly packageRepo: Repository<AnnouncementPackage>
+    private readonly packageRepo: Repository<AnnouncementPackage>,
+    @InjectRepository(PromotionPackage)
+    private readonly promotionPackageRepo: Repository<PromotionPackage>
   ) {}
 
   async saveSuccessfulPayment(data: {
@@ -37,7 +40,18 @@ export class AnnouncementPaymentService {
       : null;
 
     const now = new Date();
-    const endDate = pkg.durationDays ? new Date(now.getTime() + pkg.durationDays * 86400000) : null;
+
+    const promotion = data.promotionId
+      ? await this.promotionPackageRepo.findOneByOrFail({ id: data.promotionId })
+      : null;
+
+      const packageEndDate = pkg.durationDays
+      ? new Date(now.getTime() + pkg.durationDays * 86400000)
+      : null;
+    
+    const promotionEndDate = promotion?.durationDays
+      ? new Date(now.getTime() + promotion.durationDays * 86400000)
+      : null;
 
     const payment = this.paymentRepo.create({
       announcement,
@@ -45,11 +59,12 @@ export class AnnouncementPaymentService {
       amount: data.amount,
       originalAmount: data.originalAmount,
       discountAmount: data.originalAmount ? data.originalAmount - data.amount : null,
-      discount,
-      packageType: pkg.packageType,
-      promotionType: pkg.promotionType,
+      discount: discount,
+      promotion: promotion,
+      package: pkg,
       startDate: now,
-      endDate,
+      packageEndDate: packageEndDate,
+      promotionEndDate: promotionEndDate
     });
 
     await this.paymentRepo.save(payment);

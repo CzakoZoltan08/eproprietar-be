@@ -14,13 +14,16 @@ export class PaymentController {
     private configService: ConfigService
   ) {}
 
-  @Get('/announcement-options')
-  async getPricingOptions(@Query('userId') userId: string) {
-    if(!userId) {
-      return null
-    }
+  @Get('/announcement-packages')
+  async getAnnouncementPackages(@Query('userId') userId: string) {
+    if (!userId) return null;
+    return this.pricingService.getAnnouncementPackages(userId);
+  }
 
-    return this.pricingService.getPricingOptions(userId);
+  @Get('/promotion-packages')
+  async getPromotionPackages(@Query('userId') userId: string) {
+    if (!userId) return null;
+    return this.pricingService.getPromotionPackages(userId);
   }
 
   @Post('create')
@@ -32,6 +35,7 @@ export class PaymentController {
       body.packageId,
       body.discountCode,
       body.originalAmount,
+      body.promotionId
     );
   }
 
