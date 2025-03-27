@@ -120,19 +120,35 @@ export class SeederService implements OnModuleInit {
 
     const count = await repo.count();
     if (count > 0) return;
-
+  
+    const now = new Date();
+    const validFrom = new Date(now.setHours(0, 0, 0, 0)); // Start of today
+    const validTo = new Date();
+    validTo.setMonth(validTo.getMonth() + 1);             // 1 month ahead
+    validTo.setHours(23, 59, 59, 999);                    // End of day
+  
     const discounts: Partial<Discount>[] = [
       {
-        code: 'LAUNCH10',
-        percentage: 10,
-        validFrom: new Date(),
-        validTo: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+        code: 'PKG15OFF',
+        percentage: 20,
+        description: '20% off 15-day package',
+        validFrom,
+        validTo,
         applicablePackageTypes: [PaymentPackageType.DAYS_15],
-        applicablePromotionTypes: [PromotionPackageType.PROMOTE_30_DAYS],
+        active: true,
+      },
+      {
+        code: 'PROMO15SAVE',
+        fixedAmount: 2,
+        description: 'Save 2€ on 15-day promotion',
+        validFrom,
+        validTo,
+        applicablePromotionTypes: [PromotionPackageType.PROMOTE_15_DAYS],
+        active: true,
       },
     ];
-
+  
     await repo.save(discounts);
-    this.logger.log('Seeded discounts.');
+    this.logger.log('✅ Seeded discounts with valid date ranges.');
   }
 }

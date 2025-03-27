@@ -45,6 +45,9 @@ export class AnnouncementPayment {
   @ManyToOne(() => Discount, { nullable: true })
   discount?: Discount;
 
+  @ManyToOne(() => Discount, { nullable: true })
+  promotionDiscount?: Discount;
+
   @CreateDateColumn()
   createdAt: Date;
 }

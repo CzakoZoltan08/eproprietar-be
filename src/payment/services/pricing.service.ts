@@ -90,10 +90,11 @@ export class PricingService {
   
     return await this.discountRepo
       .createQueryBuilder('discount')
-      .where(':now BETWEEN discount.validFrom AND discount.validTo', { now })
+      .where('(discount.validFrom IS NULL OR discount.validFrom <= :now)', { now })
+      .andWhere('(discount.validTo IS NULL OR discount.validTo >= :now)', { now })
       .andWhere('discount.active = true')
-      .andWhere(':type = ANY(discount.applicablePackageTypes)', { type: [packageType] })
-      .andWhere('(:userId = ANY(discount.allowedUserIds) OR discount.allowedUserIds IS NULL)', { userId })
+      .andWhere('discount.applicablePackageTypes @> ARRAY[:...types]', { types: [packageType] })
+      .andWhere('(:userId = ANY(discount.allowedUserIds) OR discount.allowedUserIds IS NULL OR cardinality(discount.allowedUserIds) = 0)', { userId })
       .orderBy('discount.createdAt', 'DESC')
       .getOne();
   }
@@ -106,10 +107,11 @@ export class PricingService {
   
     return await this.discountRepo
       .createQueryBuilder('discount')
-      .where(':now BETWEEN discount.validFrom AND discount.validTo', { now })
+      .where('(discount.validFrom IS NULL OR discount.validFrom <= :now)', { now })
+      .andWhere('(discount.validTo IS NULL OR discount.validTo >= :now)', { now })
       .andWhere('discount.active = true')
-      .andWhere(':type = ANY(discount.applicablePromotionTypes)', { type: [promotionType] })
-      .andWhere('(:userId = ANY(discount.allowedUserIds) OR discount.allowedUserIds IS NULL)', { userId })
+      .andWhere('discount.applicablePromotionTypes @> ARRAY[:...types]', { types: [promotionType] })
+      .andWhere('(:userId = ANY(discount.allowedUserIds) OR discount.allowedUserIds IS NULL OR cardinality(discount.allowedUserIds) = 0)', { userId })
       .orderBy('discount.createdAt', 'DESC')
       .getOne();
   }

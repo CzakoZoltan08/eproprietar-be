@@ -35,7 +35,8 @@ export class PaymentController {
       body.packageId,
       body.discountCode,
       body.originalAmount,
-      body.promotionId
+      body.promotionId,
+      body.promotionDiscountCode
     );
   }
 

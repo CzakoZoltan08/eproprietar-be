@@ -45,12 +45,16 @@ export class AnnouncementPaymentService {
       ? await this.promotionPackageRepo.findOneByOrFail({ id: data.promotionId })
       : null;
 
-      const packageEndDate = pkg.durationDays
-      ? new Date(now.getTime() + pkg.durationDays * 86400000)
-      : null;
+    const packageEndDate = pkg.durationDays
+    ? new Date(now.getTime() + pkg.durationDays * 86400000)
+    : null;
     
     const promotionEndDate = promotion?.durationDays
       ? new Date(now.getTime() + promotion.durationDays * 86400000)
+      : null;
+
+    const promotionDiscount = data.promotionDiscountCode
+      ? await this.discountRepo.findOne({ where: { code: data.promotionDiscountCode } })
       : null;
 
     const payment = this.paymentRepo.create({
@@ -64,7 +68,8 @@ export class AnnouncementPaymentService {
       package: pkg,
       startDate: now,
       packageEndDate: packageEndDate,
-      promotionEndDate: promotionEndDate
+      promotionEndDate: promotionEndDate,
+      promotionDiscount: promotionDiscount
     });
 
     await this.paymentRepo.save(payment);
