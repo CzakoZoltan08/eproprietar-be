@@ -1,27 +1,49 @@
-import { Controller, Post, Body, Headers, Req, Res } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Req, Res, Get, Query } from '@nestjs/common';
 import { Response } from 'express';
 import { PaymentService } from './payment.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { PricingService } from './services/pricing.service';
+import { CreatePaymentDto } from './dto/create-payment.dto';
+import { PackageAudience } from './enums/announcement-payment.enums';
 
 @Controller('payment')
 export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
+    private readonly pricingService: PricingService,
     private configService: ConfigService
   ) {}
 
-  /**
-   * Create a new payment session
-   */
-  @Post('create')
-  async createPayment(@Body() body: { orderId: string; amount: number; currency: string }) {
-    return this.paymentService.createPaymentSession(body.orderId, body.amount, body.currency);
+  @Get('/announcement-packages')
+  async getAnnouncementPackages(
+    @Query('userId') userId: string,
+    @Query('audience') audience: PackageAudience = PackageAudience.NORMAL
+  ) {
+    if (!userId) return null;
+    return this.pricingService.getAnnouncementPackages(userId, audience);
   }
 
-  /**
-   * Handle Stripe Webhook Events
-   */
+  @Get('/promotion-packages')
+  async getPromotionPackages(@Query('userId') userId: string) {
+    if (!userId) return null;
+    return this.pricingService.getPromotionPackages(userId);
+  }
+
+  @Post('create')
+  async createPayment(@Body() body: CreatePaymentDto) {
+    return this.paymentService.createPaymentSession(
+      body.orderId,
+      body.amount,
+      body.currency,
+      body.packageId,
+      body.discountCode,
+      body.originalAmount,
+      body.promotionId,
+      body.promotionDiscountCode
+    );
+  }
+
   @Post('webhook')
   async confirmPayment(
     @Headers('stripe-signature') sig: string,
@@ -38,7 +60,7 @@ export class PaymentController {
       }
 
       event = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY')).webhooks.constructEvent(
-        req.rawBody, // ✅ Use req.rawBody instead of req.body
+        req.rawBody,
         sig,
         endpointSecret
       );
