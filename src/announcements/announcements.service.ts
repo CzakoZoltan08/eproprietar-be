@@ -52,12 +52,15 @@ export class AnnouncementsService {
     const queryBuilder = this.announcementRepo.createQueryBuilder("announcement");
 
     // Apply filters if present in the request
-    if (query.filter?.status) {
-        console.log("Filtering by status:", query.filter.status); // Debugging line
-
-        const allowedStatuses = (typeof query.filter.status === 'string' ? query.filter.status : query.filter.status.join(',')).replace("$in:", "").split(",");
-
-        queryBuilder.andWhere("announcement.status IN (:...status)", { status: allowedStatuses });
+    if (query.filter?.providerType) {
+      const allowedTypes = (typeof query.filter.providerType === 'string'
+        ? query.filter.providerType
+        : query.filter.providerType.join(',')
+      ).replace("$in:", "").split(",");
+    
+      queryBuilder.andWhere("announcement.providerType IN (:...providerType)", {
+        providerType: allowedTypes,
+      });
     }
 
     const paginated = await paginate<Announcement>(query, queryBuilder, config);
