@@ -121,6 +121,15 @@ export class Announcement {
   @Column({ nullable: true })
   imageUrl: string;
 
+  @Column({ nullable: true })
+  logoUrl: string;
+
+  @Column({ nullable: true })
+  developerName: string;
+  
+  @Column({ nullable: true })
+  phoneContact: string;
+
   @ManyToOne(() => User, (user) => user.announcements, {
     nullable: true,
   })
