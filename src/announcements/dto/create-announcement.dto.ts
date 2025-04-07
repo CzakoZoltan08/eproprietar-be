@@ -117,4 +117,8 @@ export class CreateAnnouncementDto {
   @IsString()
   @IsOptional()
   logoUrl: string;
+
+  @IsString()
+  @IsOptional()
+  phoneContact: string;
 }
