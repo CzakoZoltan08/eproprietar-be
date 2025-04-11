@@ -3,8 +3,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AnnouncementPaymentService } from './services/announcement-payment.service';
 import { AnnouncementsService } from '../announcements/announcements.service';
 import { ConfigService } from '@nestjs/config';
+import { CreatePaymentDto } from './dto/create-payment.dto';
 import { CurrencyType } from '../public/enums/currencyTypes.enum';
 import Stripe from 'stripe';
+import axios from 'axios';
 
 @Injectable()
 export class PaymentService {
@@ -21,16 +23,19 @@ export class PaymentService {
     });
   }
 
-  async createPaymentSession(
-    orderId: string,
-    amount: number,
-    currency: string,
-    packageId: string,
-    discountCode?: string,
-    originalAmount?: number,
-    promotionId?: string,
-    promotionDiscountCode?: string
-  ) {
+  async createPaymentSession(dto: CreatePaymentDto) {
+    const {
+      orderId,
+      amount,
+      currency,
+      packageId,
+      discountCode,
+      originalAmount,
+      promotionId,
+      promotionDiscountCode,
+      invoiceDetails,
+    } = dto;
+  
     try {
       if (amount === 0) {
         await this.announcementPaymentService.saveSuccessfulPayment({
@@ -41,7 +46,7 @@ export class PaymentService {
           discountCode,
           currency: currency.toUpperCase() as CurrencyType,
           promotionId,
-          promotionDiscountCode
+          promotionDiscountCode,
         });
 
         await this.updateAnnouncementStatus(orderId, 'active');
@@ -52,6 +57,8 @@ export class PaymentService {
         };
       }
 
+      const invoiceDetailsPayload = JSON.stringify(invoiceDetails);
+
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
@@ -59,9 +66,7 @@ export class PaymentService {
           {
             price_data: {
               currency,
-              product_data: {
-                name: `Payment for Announcement ${orderId}`,
-              },
+              product_data: { name: `Payment for Announcement ${orderId}` },
               unit_amount: amount * 100,
             },
             quantity: 1,
@@ -74,6 +79,7 @@ export class PaymentService {
           originalAmount: originalAmount?.toString() || '',
           promotionId: promotionId || '',
           promotionDiscountCode: promotionDiscountCode || '',
+          invoiceDetails: invoiceDetailsPayload, // Store invoice details as JSON
         },
         success_url: `${this.configService.get<string>('FRONTEND_URL')}/payment-status?orderId=${orderId}&success=true`,
         cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/create-announcement?failed=true`,
@@ -120,7 +126,19 @@ export class PaymentService {
           });
 
           await this.updateAnnouncementStatus(orderId, 'active');
-          return { success: true, message: 'Payment successful' };
+        
+          // Parse invoice details from metadata
+          const invoiceDetails = metadata.invoiceDetails
+            ? JSON.parse(metadata.invoiceDetails)
+            : null;
+        
+          if (invoiceDetails) {
+            await this.sendInvoiceToSmartBill(invoiceDetails, amount, currency);
+          } else {
+            this.logger.warn(`Invoice details missing for orderId ${orderId}`);
+          }
+        
+          return { success: true, message: 'Payment successful and invoice sent' };
         }
 
         case 'payment_intent.payment_failed':
@@ -160,4 +178,77 @@ export class PaymentService {
       this.logger.error(`Failed to delete announcement: ${(error as Error).message}`);
     }
   }
+
+  private async sendInvoiceToSmartBill(
+    invoiceDetails: {
+      name: string;
+      cif?: string;
+      regCom?: string;
+      address: string;
+      city: string;
+      country: string;
+      email: string;
+      isTaxPayer: boolean;
+    },
+    amount: number,
+    currency: string
+  ) {
+    try {
+      const smartBillUrl = this.configService.get('SMARTBILL_API_URL');
+      const apiToken = this.configService.get('SMARTBILL_API_TOKEN');
+      const username = this.configService.get('SMARTBILL_USERNAME');
+      const cif = this.configService.get('SMARTBILL_COMPANY_CIF');
+      const series = this.configService.get('SMARTBILL_SERIES');
+      const dueDays = parseInt(this.configService.get('SMARTBILL_DUE_DAYS'), 10);
+  
+      const invoicePayload = {
+        companyVatCode: cif,
+        client: {
+          name: invoiceDetails.name,
+          vatCode: invoiceDetails.cif || undefined,
+          address: invoiceDetails.address,
+          city: invoiceDetails.city,
+          country: invoiceDetails.country,
+          email: invoiceDetails.email,
+          isTaxPayer: invoiceDetails.isTaxPayer,
+          saveToDb: false,
+        },
+        issueDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + dueDays * 86400000).toISOString().split('T')[0],
+        deliveryDate: new Date().toISOString().split('T')[0],
+        seriesName: series,
+        currency: currency.toUpperCase(),
+        language: 'RO',
+        isDraft: false,
+        products: [
+          {
+            name: "Pachet afisare anunt",
+            measuringUnitName: "buc",
+            quantity: 1,
+            price: amount,
+            currency: currency.toUpperCase(),
+            isTaxIncluded: true,
+            taxPercentage: 0,
+            isDiscount: false,
+            saveToDb: false,
+            isService: true,
+          },
+        ],
+        sendEmail: false,
+      };
+  
+      const response = await axios.post(`${smartBillUrl}/SBORO/api/invoice`, invoicePayload, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Basic ${Buffer.from(`${username}:${apiToken}`).toString('base64')}`,
+        },
+      });
+  
+      this.logger.log(`Invoice successfully created. Number: ${response.data.number}`);
+    } catch (error) {
+      this.logger.error(`SmartBill Invoice Error: ${(error as Error).message}`);
+      throw new Error('Invoice creation failed');
+    }
+  }  
 }

@@ -32,16 +32,7 @@ export class PaymentController {
 
   @Post('create')
   async createPayment(@Body() body: CreatePaymentDto) {
-    return this.paymentService.createPaymentSession(
-      body.orderId,
-      body.amount,
-      body.currency,
-      body.packageId,
-      body.discountCode,
-      body.originalAmount,
-      body.promotionId,
-      body.promotionDiscountCode
-    );
+    return this.paymentService.createPaymentSession(body);
   }
 
   @Post('webhook')
