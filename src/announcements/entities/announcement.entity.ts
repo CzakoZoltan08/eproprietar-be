@@ -125,6 +125,9 @@ export class Announcement {
   logoUrl: string;
 
   @Column({ nullable: true })
+  sketchUrl: string;
+
+  @Column({ nullable: true })
   developerName: string;
   
   @Column({ nullable: true })

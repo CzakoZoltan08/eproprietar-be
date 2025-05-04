@@ -5,15 +5,16 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { LessThan, Repository } from 'typeorm';
+import { In, IsNull, LessThan, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { paginate, PaginateQuery } from 'nestjs-paginate';
 
 import { Announcement } from './entities/announcement.entity';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
-import { PaginateConfigAnnouncements } from './announcements.paginate';
 import { UsersService } from '../users/users.service';
+import { AnnouncementPayment } from 'src/payment/entities/announcement-payment.entity';
+import { PaginateQuery, Paginated } from 'nestjs-paginate';
+
 
 @Injectable()
 export class AnnouncementsService {
@@ -46,27 +47,86 @@ export class AnnouncementsService {
     });
   }
 
-  async findAllPaginated(query: PaginateQuery) {
-    const config = PaginateConfigAnnouncements;
-
-    const queryBuilder = this.announcementRepo.createQueryBuilder("announcement");
-
-    // Apply filters if present in the request
-    if (query.filter?.providerType) {
-      const allowedTypes = (typeof query.filter.providerType === 'string'
-        ? query.filter.providerType
-        : query.filter.providerType.join(',')
-      ).replace("$in:", "").split(",");
-    
-      queryBuilder.andWhere("announcement.providerType IN (:...providerType)", {
-        providerType: allowedTypes,
-      });
-    }
-
-    const paginated = await paginate<Announcement>(query, queryBuilder, config);
-
-    return paginated;
+  buildPaginationLinks(query: PaginateQuery, totalPages: number, currentPage: number): { first?: string; previous?: string; current: string; next?: string; last?: string } {
+    const baseUrl = query.path;
+    const queryParams = new URLSearchParams(query.search);
+  
+    const makeLink = (page: number) => {
+      queryParams.set('page', page.toString());
+      return `${baseUrl}?${queryParams.toString()}`;
+    };
+  
+    return {
+      first: makeLink(1),
+      previous: currentPage > 1 ? makeLink(currentPage - 1) : undefined,
+      current: makeLink(currentPage),
+      next: currentPage < totalPages ? makeLink(currentPage + 1) : undefined,
+      last: makeLink(totalPages),
+    };
   }
+
+  async findAllPaginated(query: PaginateQuery): Promise<Paginated<Announcement>> {
+    const announcements = await this.announcementRepo.find({
+      where: { status: 'active' },
+      relations: ['user', 'agency'],
+    });
+  
+    const promotedIds = announcements.filter(a => a.isPromoted).map(a => a.id);
+  
+    const promotionPayments = await this.announcementRepo.manager.find(AnnouncementPayment, {
+      where: {
+        promotion: { id: Not(IsNull()) },
+        announcement: { id: In(promotedIds) },
+      },
+      relations: ['announcement'],
+      order: { createdAt: 'DESC' },
+    });
+  
+    const latestPromoDateMap = new Map<string, Date>();
+    for (const payment of promotionPayments) {
+      const annId = payment.announcement.id;
+      if (!latestPromoDateMap.has(annId)) {
+        latestPromoDateMap.set(annId, payment.createdAt);
+      }
+    }
+  
+    const enriched = announcements.map(a => ({
+      announcement: a,
+      isPromoted: a.isPromoted,
+      promoDate: latestPromoDateMap.get(a.id) ?? null,
+    }));
+  
+    enriched.sort((a, b) => {
+      if (a.isPromoted !== b.isPromoted) return a.isPromoted ? -1 : 1;
+      const dateA = a.promoDate?.getTime() ?? 0;
+      const dateB = b.promoDate?.getTime() ?? 0;
+      if (dateA !== dateB) return dateB - dateA;
+      return new Date(b.announcement.createdAt).getTime() - new Date(a.announcement.createdAt).getTime();
+    });
+  
+    const sortedAnnouncements = enriched.map(e => e.announcement);
+  
+    const total = sortedAnnouncements.length;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? total;
+    const offset = (page - 1) * limit;
+    const paginated = sortedAnnouncements.slice(offset, offset + limit);
+  
+    return {
+      data: paginated,
+      meta: {
+        totalItems: total,
+        itemsPerPage: limit,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        sortBy: [],
+        searchBy: [],
+        search: '',
+        select: []
+      },
+      links: this.buildPaginationLinks(query, Math.ceil(total / limit), page),
+    };
+  } 
 
   findOne(id: string) {
     return this.announcementRepo.findOne({

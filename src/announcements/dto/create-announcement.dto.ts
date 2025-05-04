@@ -121,4 +121,8 @@ export class CreateAnnouncementDto {
   @IsString()
   @IsOptional()
   phoneContact: string;
+
+  @IsString()
+  @IsOptional()
+  sketchUrl: string;
 }
