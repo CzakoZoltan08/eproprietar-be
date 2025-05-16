@@ -42,6 +42,9 @@ export class Announcement {
   @Column({ nullable: false })
   city: string;
 
+  @Column({ nullable: false, default: 'Cluj' })
+  county: string;
+
   @Column({ nullable: true })
   street: string;
 

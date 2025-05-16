@@ -27,6 +27,9 @@ export class CreateAnnouncementDto {
   city: string;
 
   @IsString()
+  county: string;
+
+  @IsString()
   @IsOptional()
   street: string;
 
