@@ -33,7 +33,9 @@ export class AnnouncementPayment {
   @Column({ type: 'timestamp', nullable: true })
   promotionEndDate?: Date;
 
-  @ManyToOne(() => Announcement, (a) => a.payments)
+  @ManyToOne(() => Announcement, (announcement) => announcement.payments, {
+    onDelete: 'CASCADE',
+  })
   announcement: Announcement;
 
   @ManyToOne(() => AnnouncementPackage, { eager: true })
