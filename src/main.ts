@@ -31,15 +31,8 @@ async function bootstrap() {
     }),
   );
 
-  // ✅ Middleware to store raw body for Stripe webhook verification
-  app.use(
-    '/payment/webhook',
-    raw({ type: 'application/json' }),
-    (req, res, next) => {
-      req.rawBody = req.body; // Store raw body in req.rawBody
-      next();
-    }
-  );
+  // Stripe webhook needs raw body
+  app.use('/payment/webhook', raw({ type: 'application/json' }));
 
   // Custom body parsers
   app.use(express.json()); // Parse application/json
