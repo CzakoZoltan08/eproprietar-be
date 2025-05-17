@@ -47,6 +47,13 @@ export class AnnouncementsService {
     });
   }
 
+  async findByUserId(userId: string): Promise<Announcement[]> {
+    return this.announcementRepo.find({
+      where: { user: { id: userId } },
+      relations: { user: true },
+    });
+  }
+
   buildPaginationLinks(query: PaginateQuery, totalPages: number, currentPage: number): { first?: string; previous?: string; current: string; next?: string; last?: string } {
     const baseUrl = query.path;
     const queryParams = new URLSearchParams(query.search);
