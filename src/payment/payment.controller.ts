@@ -38,25 +38,25 @@ export class PaymentController {
   @Post('webhook')
   async confirmPayment(
     @Headers('stripe-signature') sig: string,
-    @Req() req: Request & { rawBody?: Buffer },
+    @Req() req: Request,
     @Res() res: Response
   ) {
     const endpointSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
     let event: Stripe.Event;
 
     try {
-      if (!req.rawBody) {
-        console.error('❌ Webhook Error: req.rawBody is missing');
-        return res.status(400).send('Webhook Error: req.rawBody is missing');
+      if (!Buffer.isBuffer(req.body)) {
+        console.error('❌ Webhook Error: Body is not a Buffer');
+        return res.status(400).send('Webhook Error: Body is not a Buffer');
       }
 
       event = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY')).webhooks.constructEvent(
-        req.rawBody,
+        req.body, // Use raw Buffer directly
         sig,
         endpointSecret
       );
 
-      console.log('✅ Webhook event received:', event);
+      console.log('✅ Webhook event received:', event.type);
 
       const response = await this.paymentService.handleWebhookEvent(event);
       return res.status(200).json(response);
