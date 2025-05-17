@@ -153,19 +153,25 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
-    // If the user has a firebaseId, delete the Firebase Auth user as well
+
+    // Delete all announcements created by this user
+    const announcementsByUser = await this.announcementService.findByUserId(id);
+
+    for (const announcement of announcementsByUser) {
+      await this.announcementService.remove(announcement.id);
+    }
+
+    // Delete the user from Firebase if applicable
     if (user.firebaseId) {
       try {
         await this.firebaseAdmin.auth().deleteUser(user.firebaseId);
       } catch (error) {
         console.error(`Failed to delete Firebase user with ID ${user.firebaseId}`, error);
-        // Optionally, you could throw an error here to prevent local deletion
         throw new BadRequestException('Error deleting user from Firebase.');
       }
     }
-  
-    // Delete the user from your local DB
+
+    // Finally, delete the user from your local DB
     return this.userRepo.delete(id);
   }
 

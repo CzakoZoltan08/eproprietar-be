@@ -42,6 +42,9 @@ export class Announcement {
   @Column({ nullable: false })
   city: string;
 
+  @Column({ nullable: false, default: 'Cluj' })
+  county: string;
+
   @Column({ nullable: true })
   street: string;
 
@@ -120,6 +123,18 @@ export class Announcement {
 
   @Column({ nullable: true })
   imageUrl: string;
+
+  @Column({ nullable: true })
+  logoUrl: string;
+
+  @Column({ nullable: true })
+  sketchUrl: string;
+
+  @Column({ nullable: true })
+  developerName: string;
+  
+  @Column({ nullable: true })
+  phoneContact: string;
 
   @ManyToOne(() => User, (user) => user.announcements, {
     nullable: true,

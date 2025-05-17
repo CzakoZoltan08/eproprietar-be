@@ -27,6 +27,9 @@ export class CreateAnnouncementDto {
   city: string;
 
   @IsString()
+  county: string;
+
+  @IsString()
   @IsOptional()
   street: string;
 
@@ -113,4 +116,16 @@ export class CreateAnnouncementDto {
   @IsString()
   @IsOptional()
   imageUrl: string;
+
+  @IsString()
+  @IsOptional()
+  logoUrl: string;
+
+  @IsString()
+  @IsOptional()
+  phoneContact: string;
+
+  @IsString()
+  @IsOptional()
+  sketchUrl: string;
 }

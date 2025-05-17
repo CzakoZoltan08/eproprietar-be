@@ -5,15 +5,23 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { LessThan, Repository } from 'typeorm';
+import { FindOptionsWhere, In, LessThanOrEqual, Equal, Not, IsNull, LessThan, Repository } from 'typeorm';
+
 import { InjectRepository } from '@nestjs/typeorm';
-import { paginate, PaginateQuery } from 'nestjs-paginate';
 
 import { Announcement } from './entities/announcement.entity';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
-import { PaginateConfigAnnouncements } from './announcements.paginate';
 import { UsersService } from '../users/users.service';
+import { AnnouncementPayment } from 'src/payment/entities/announcement-payment.entity';
+import { PaginateQuery, Paginated } from 'nestjs-paginate';
+
+
+function normalizeFilterValue(value: string | string[] | undefined, pattern: RegExp): string | undefined {
+  if (!value) return undefined;
+  const str = Array.isArray(value) ? value[0] : value;
+  return str.replace(pattern, '').trim();
+}
 
 @Injectable()
 export class AnnouncementsService {
@@ -46,23 +54,120 @@ export class AnnouncementsService {
     });
   }
 
-  async findAllPaginated(query: PaginateQuery) {
-    const config = PaginateConfigAnnouncements;
+  async findByUserId(userId: string): Promise<Announcement[]> {
+    return this.announcementRepo.find({
+      where: { user: { id: userId } },
+      relations: { user: true },
+    });
+  }
 
-    const queryBuilder = this.announcementRepo.createQueryBuilder("announcement");
+  buildPaginationLinks(query: PaginateQuery, totalPages: number, currentPage: number): { first?: string; previous?: string; current: string; next?: string; last?: string } {
+    const baseUrl = query.path;
+    const queryParams = new URLSearchParams(query.search);
+  
+    const makeLink = (page: number) => {
+      queryParams.set('page', page.toString());
+      return `${baseUrl}?${queryParams.toString()}`;
+    };
+  
+    return {
+      first: makeLink(1),
+      previous: currentPage > 1 ? makeLink(currentPage - 1) : undefined,
+      current: makeLink(currentPage),
+      next: currentPage < totalPages ? makeLink(currentPage + 1) : undefined,
+      last: makeLink(totalPages),
+    };
+  }
 
-    // Apply filters if present in the request
-    if (query.filter?.status) {
-        console.log("Filtering by status:", query.filter.status); // Debugging line
+  async findAllPaginated(query: PaginateQuery): Promise<Paginated<Announcement>> {
+    const where: FindOptionsWhere<Announcement> = {};
 
-        const allowedStatuses = (typeof query.filter.status === 'string' ? query.filter.status : query.filter.status.join(',')).replace("$in:", "").split(",");
+    const filters = query.filter ?? {};
 
-        queryBuilder.andWhere("announcement.status IN (:...status)", { status: allowedStatuses });
+    // Clean up and apply filters
+    const city = normalizeFilterValue(filters.city, /^\$in:\$in:/);
+    if (city) where.city = In([city]);
+
+    const county = normalizeFilterValue(filters.county, /^\$in:\$in:/);
+    if (county) where.county = In([county]);
+
+    const maxPriceStr = normalizeFilterValue(filters.price, /^\$lte:\$lte:/);
+    if (maxPriceStr) where.price = LessThanOrEqual(Number(maxPriceStr));
+
+    const announcementType = normalizeFilterValue(filters.announcementType, /^\$in:/);
+    if (announcementType) where.announcementType = Equal(announcementType);
+
+    if(announcementType === 'apartament') {
+      const roomsStr = normalizeFilterValue(filters.rooms, /^\$eq:\$eq:/);
+      if (roomsStr) where.rooms = Equal(Number(roomsStr));
     }
 
-    const paginated = await paginate<Announcement>(query, queryBuilder, config);
+    const transactionType = normalizeFilterValue(filters.transactionType, /^\$in:/);
+    if (transactionType) where.transactionType = Equal(transactionType);
 
-    return paginated;
+    const status = normalizeFilterValue(filters.status, /^\$in:/);
+    where.status = status ? Equal(status) : Equal('active');
+
+    const announcements = await this.announcementRepo.find({
+      where,
+      relations: ['user', 'agency'],
+    });
+
+    // Promotion lookup
+    const promotedIds = announcements.filter(a => a.isPromoted).map(a => a.id);
+
+    const promotionPayments = await this.announcementRepo.manager.find(AnnouncementPayment, {
+      where: {
+        promotion: { id: Not(IsNull()) },
+        announcement: { id: In(promotedIds) },
+      },
+      relations: ['announcement'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const latestPromoDateMap = new Map<string, Date>();
+    for (const payment of promotionPayments) {
+      const annId = payment.announcement.id;
+      if (!latestPromoDateMap.has(annId)) {
+        latestPromoDateMap.set(annId, payment.createdAt);
+      }
+    }
+
+    const enriched = announcements.map(a => ({
+      announcement: a,
+      isPromoted: a.isPromoted,
+      promoDate: latestPromoDateMap.get(a.id) ?? null,
+    }));
+
+    enriched.sort((a, b) => {
+      if (a.isPromoted !== b.isPromoted) return a.isPromoted ? -1 : 1;
+      const dateA = a.promoDate?.getTime() ?? 0;
+      const dateB = b.promoDate?.getTime() ?? 0;
+      if (dateA !== dateB) return dateB - dateA;
+      return new Date(b.announcement.createdAt).getTime() - new Date(a.announcement.createdAt).getTime();
+    });
+
+    const sortedAnnouncements = enriched.map(e => e.announcement);
+    const total = sortedAnnouncements.length;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? total;
+    const offset = (page - 1) * limit;
+    const paginated = sortedAnnouncements.slice(offset, offset + limit);
+
+    return {
+      data: paginated,
+      meta: {
+        totalItems: total,
+        itemsPerPage: limit,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        sortBy: [],
+        searchBy: [],
+        search: '',
+        select: [],
+      },
+      links: this.buildPaginationLinks(query, Math.ceil(total / limit), page),
+    };
   }
 
   findOne(id: string) {
