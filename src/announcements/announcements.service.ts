@@ -5,7 +5,8 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { In, IsNull, LessThan, Not, Repository } from 'typeorm';
+import { FindOptionsWhere, In, LessThanOrEqual, Equal, Not, IsNull, LessThan, Repository } from 'typeorm';
+
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Announcement } from './entities/announcement.entity';
@@ -15,6 +16,12 @@ import { UsersService } from '../users/users.service';
 import { AnnouncementPayment } from 'src/payment/entities/announcement-payment.entity';
 import { PaginateQuery, Paginated } from 'nestjs-paginate';
 
+
+function normalizeFilterValue(value: string | string[] | undefined, pattern: RegExp): string | undefined {
+  if (!value) return undefined;
+  const str = Array.isArray(value) ? value[0] : value;
+  return str.replace(pattern, '').trim();
+}
 
 @Injectable()
 export class AnnouncementsService {
@@ -73,13 +80,42 @@ export class AnnouncementsService {
   }
 
   async findAllPaginated(query: PaginateQuery): Promise<Paginated<Announcement>> {
+    const where: FindOptionsWhere<Announcement> = {};
+
+    const filters = query.filter ?? {};
+
+    // Clean up and apply filters
+    const city = normalizeFilterValue(filters.city, /^\$in:\$in:/);
+    if (city) where.city = In([city]);
+
+    const county = normalizeFilterValue(filters.county, /^\$in:\$in:/);
+    if (county) where.county = In([county]);
+
+    const maxPriceStr = normalizeFilterValue(filters.price, /^\$lte:\$lte:/);
+    if (maxPriceStr) where.price = LessThanOrEqual(Number(maxPriceStr));
+
+    const announcementType = normalizeFilterValue(filters.announcementType, /^\$in:/);
+    if (announcementType) where.announcementType = Equal(announcementType);
+
+    if(announcementType === 'apartament') {
+      const roomsStr = normalizeFilterValue(filters.rooms, /^\$eq:\$eq:/);
+      if (roomsStr) where.rooms = Equal(Number(roomsStr));
+    }
+
+    const transactionType = normalizeFilterValue(filters.transactionType, /^\$in:/);
+    if (transactionType) where.transactionType = Equal(transactionType);
+
+    const status = normalizeFilterValue(filters.status, /^\$in:/);
+    where.status = status ? Equal(status) : Equal('active');
+
     const announcements = await this.announcementRepo.find({
-      where: { status: 'active' },
+      where,
       relations: ['user', 'agency'],
     });
-  
+
+    // Promotion lookup
     const promotedIds = announcements.filter(a => a.isPromoted).map(a => a.id);
-  
+
     const promotionPayments = await this.announcementRepo.manager.find(AnnouncementPayment, {
       where: {
         promotion: { id: Not(IsNull()) },
@@ -88,7 +124,7 @@ export class AnnouncementsService {
       relations: ['announcement'],
       order: { createdAt: 'DESC' },
     });
-  
+
     const latestPromoDateMap = new Map<string, Date>();
     for (const payment of promotionPayments) {
       const annId = payment.announcement.id;
@@ -96,13 +132,13 @@ export class AnnouncementsService {
         latestPromoDateMap.set(annId, payment.createdAt);
       }
     }
-  
+
     const enriched = announcements.map(a => ({
       announcement: a,
       isPromoted: a.isPromoted,
       promoDate: latestPromoDateMap.get(a.id) ?? null,
     }));
-  
+
     enriched.sort((a, b) => {
       if (a.isPromoted !== b.isPromoted) return a.isPromoted ? -1 : 1;
       const dateA = a.promoDate?.getTime() ?? 0;
@@ -110,15 +146,14 @@ export class AnnouncementsService {
       if (dateA !== dateB) return dateB - dateA;
       return new Date(b.announcement.createdAt).getTime() - new Date(a.announcement.createdAt).getTime();
     });
-  
+
     const sortedAnnouncements = enriched.map(e => e.announcement);
-  
     const total = sortedAnnouncements.length;
     const page = query.page ?? 1;
     const limit = query.limit ?? total;
     const offset = (page - 1) * limit;
     const paginated = sortedAnnouncements.slice(offset, offset + limit);
-  
+
     return {
       data: paginated,
       meta: {
@@ -129,11 +164,11 @@ export class AnnouncementsService {
         sortBy: [],
         searchBy: [],
         search: '',
-        select: []
+        select: [],
       },
       links: this.buildPaginationLinks(query, Math.ceil(total / limit), page),
     };
-  } 
+  }
 
   findOne(id: string) {
     return this.announcementRepo.findOne({
