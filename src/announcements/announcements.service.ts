@@ -102,6 +102,10 @@ export class AnnouncementsService {
       if (roomsStr) where.rooms = Equal(Number(roomsStr));
     }
 
+    const userId = normalizeFilterValue(filters.user, /^\$eq:/);
+    if (userId) where.user = { id: userId };
+
+
     const transactionType = normalizeFilterValue(filters.transactionType, /^\$in:/);
     if (transactionType) where.transactionType = Equal(transactionType);
 
