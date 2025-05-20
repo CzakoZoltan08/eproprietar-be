@@ -20,14 +20,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import { CreateFirebaseUserDto } from './dto/create-firebase-user.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FirebaseAuthGuard } from 'src/auth/firebase-auth.guard';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Post()
   @UseInterceptors(new TransformInterceptor(CreateUserResponseDto))
   @ApiOkResponse({ type: CreateUserResponseDto })
@@ -35,7 +35,7 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Post('/firebase')
   @UseInterceptors(new TransformInterceptor(CreateUserResponseDto))
   @ApiOkResponse({ type: CreateUserResponseDto })
@@ -43,7 +43,7 @@ export class UsersController {
     return this.usersService.createFirebaseUser(createFirebaseUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Get()
   findAll(): Promise<User[]> {
     return this.usersService.findAll();
@@ -54,19 +54,19 @@ export class UsersController {
     return this.usersService.findByEmail(email);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Get('/:id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Get('/get-favourites/:id')
   getFavouriteAnnouncements(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.getFavouriteAnnouncements(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Patch('/:id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -75,7 +75,7 @@ export class UsersController {
     return this.usersService.update(id, project);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Delete('/:id')
   delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.delete(id);

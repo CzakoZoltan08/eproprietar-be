@@ -10,19 +10,18 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FirebaseAuthGuard } from 'src/auth/firebase-auth.guard';
 import { CloudinaryService } from 'src/public/cloudinary.service';
 
 @Controller('uploads')
 export class UploadController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  @Get(":userId/:announcementId")
+  @Get(":announcementId")
   async getOptimizedResources(
-  @Param("userId") userId: string,
   @Param("announcementId") announcementId: string
   ) {
-    const folder = `users/${userId}/announcements/${announcementId}`;
+    const folder = `announcements/${announcementId}`;
 
     // Fetch images and videos separately
     const [imageResources, videoResources] = await Promise.all([
@@ -51,11 +50,10 @@ export class UploadController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post(':userId/:announcementId')
+  @UseGuards(FirebaseAuthGuard)
+  @Post(':announcementId')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
-    @Param('userId') userId: string,
     @Param('announcementId') announcementId: string,
     @Body('type') type: 'image' | 'video',
     @UploadedFile() file: Express.Multer.File,
@@ -68,7 +66,7 @@ export class UploadController {
       return reject(new Error("File size exceeds 100MB limit"));
     }
 
-    const folder = `users/${userId}/announcements/${announcementId}/${type}s`;
+    const folder = `announcements/${announcementId}/${type}s`;
 
     let result: UploadApiResponse | UploadApiErrorResponse;
     if(type == 'video'){

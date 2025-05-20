@@ -1,9 +1,10 @@
 // import { PassportStrategy } from '@nestjs/passport';
 // import { ExtractJwt, Strategy } from 'passport-jwt';
-// import { forwardRef, Inject, Injectable } from '@nestjs/common';
+// import { forwardRef, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 // import { UsersService } from '../../users/users.service';
+// import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
 
-// // @Injectable()
+// @Injectable()
 // export class FirebaseAuthStrategy extends PassportStrategy(Strategy) {
 //   constructor(
 //     @Inject(forwardRef(() => UsersService))
@@ -24,40 +25,40 @@
 //     return user;
 //   }
 
-//   // private get app(): admin.app.App {
-//   //   return admin.app();
-//   // }
-//   //
-//   // async validate(token: string) {
-//   //   const firebaseUser = await this.app
-//   //     .auth()
-//   //     .verifyIdToken(token, true)
-//   //     .catch((err) => {
-//   //       console.log(err);
-//   //       throw new UnauthorizedException(err.message);
-//   //     });
-//   //   if (!firebaseUser) {
-//   //     throw new UnauthorizedException();
-//   //   }
-//   //   const { firstName, lastName } = await this.findUser(firebaseUser);
-//   //   firebaseUser.firstName = firstName;
-//   //   firebaseUser.lastName = lastName;
-//   //   return firebaseUser;
-//   // }
-//   //
-//   // async findUser(firebaseUser: DecodedIdToken): Promise<{
-//   //   firstName: string;
-//   //   lastName: string;
-//   // }> {
-//   //   const user = await this.userRepository.findOneByFirebaseId(
-//   //     firebaseUser.uid,
-//   //   );
-//   //   if (user) {
-//   //     return {
-//   //       firstName: user.firstName,
-//   //       lastName: user.lastName,
-//   //     };
-//   //   }
-//   //   throw new UnauthorizedException('User not found in database.');
-//   // }
+//   private get app(): admin.app.App {
+//     return admin.app();
+//   }
+  
+//   async validate(token: string) {
+//     const firebaseUser = await this.app
+//       .auth()
+//       .verifyIdToken(token, true)
+//       .catch((err) => {
+//         console.log(err);
+//         throw new UnauthorizedException(err.message);
+//       });
+//     if (!firebaseUser) {
+//       throw new UnauthorizedException();
+//     }
+//     const { firstName, lastName } = await this.findUser(firebaseUser);
+//     firebaseUser.firstName = firstName;
+//     firebaseUser.lastName = lastName;
+//     return firebaseUser;
+//   }
+  
+//   async findUser(firebaseUser: DecodedIdToken): Promise<{
+//     firstName: string;
+//     lastName: string;
+//   }> {
+//     const user = await this.userRepository.findOneByFirebaseId(
+//       firebaseUser.uid,
+//     );
+//     if (user) {
+//       return {
+//         firstName: user.firstName,
+//         lastName: user.lastName,
+//       };
+//     }
+//     throw new UnauthorizedException('User not found in database.');
+//   }
 // }
