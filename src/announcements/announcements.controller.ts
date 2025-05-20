@@ -13,13 +13,13 @@ import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { Announcement } from './entities/announcement.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FirebaseAuthGuard } from 'src/auth/firebase-auth.guard';
 
 @Controller('announcements')
 export class AnnouncementsController {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Post()
   async create(@Body() createAnnouncementDto: CreateAnnouncementDto): Promise<Announcement> {
     var announcement = await this.announcementsService.create(createAnnouncementDto);
@@ -43,7 +43,7 @@ export class AnnouncementsController {
     return this.announcementsService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -52,7 +52,7 @@ export class AnnouncementsController {
     return this.announcementsService.update(id, updateAnnouncementDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.announcementsService.remove(id);

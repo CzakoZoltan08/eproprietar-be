@@ -1,8 +1,8 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { MailService } from './mail.service';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FirebaseAuthGuard } from 'src/auth/firebase-auth.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(FirebaseAuthGuard)
 @Controller('mail')
 export class MailController {
   constructor(private mailService: MailService) {}

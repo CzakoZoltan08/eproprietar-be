@@ -6,7 +6,7 @@ import Stripe from 'stripe';
 import { PricingService } from './services/pricing.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PackageAudience } from './enums/announcement-payment.enums';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FirebaseAuthGuard } from 'src/auth/firebase-auth.guard';
 
 @Controller('payment')
 export class PaymentController {
@@ -16,7 +16,7 @@ export class PaymentController {
     private configService: ConfigService
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Get('/announcement-packages')
   async getAnnouncementPackages(
     @Query('userId') userId: string,
@@ -26,14 +26,14 @@ export class PaymentController {
     return this.pricingService.getAnnouncementPackages(userId, audience);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Get('/promotion-packages')
   async getPromotionPackages(@Query('userId') userId: string) {
     if (!userId) return null;
     return this.pricingService.getPromotionPackages(userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(FirebaseAuthGuard)
   @Post('create')
   async createPayment(@Body() body: CreatePaymentDto) {
     return this.paymentService.createPaymentSession(body);
