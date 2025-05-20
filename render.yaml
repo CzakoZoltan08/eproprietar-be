@@ -1,0 +1,55 @@
+# Exported from Render on 2025-05-20T10:05:01Z
+services:
+- type: web
+  name: eproprietar-be
+  runtime: node
+  repo: https://github.com/CzakoZoltan08/eproprietar-be
+  plan: free
+  envVars:
+  - key: STRIPE_WEBHOOK_SECRET
+    sync: false
+  - key: STRIPE_SECRET_KEY
+    sync: false
+  - key: SMARTBILL_DUE_DAYS
+    sync: false
+  - key: SMARTBILL_SERIES
+    sync: false
+  - key: SMARTBILL_COMPANY_CIF
+    sync: false
+  - key: SMARTBILL_API_TOKEN
+    sync: false
+  - key: SMARTBILL_USERNAME
+    sync: false
+  - key: SMARTBILL_API_URL
+    sync: false
+  - key: SENDGRID_FROM_EMAIL
+    sync: false
+  - key: SENDGRID_API_KEY
+    sync: false
+  - key: FRONTEND_URL
+    sync: false
+  - key: FIREBASE_PROJECT_ID
+    sync: false
+  - key: FIREBASE_PRIVATE_KEY
+    sync: false
+  - key: FIREBASE_CLIENT_EMAIL
+    sync: false
+  - key: JWT_SECRET
+    sync: false
+  - key: DB_PORT
+    sync: false
+  - key: DB_PASSWORD
+    sync: false
+  - key: DB_USERNAME
+    sync: false
+  - key: DB_HOST
+    sync: false
+  - key: PORT
+    sync: false
+  - key: NODE_ENV
+    sync: false
+  region: oregon
+  buildCommand: npm install; npm run build
+  startCommand: npm run start:prod
+  autoDeployTrigger: commit
+version: "1"
