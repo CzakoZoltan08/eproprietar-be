@@ -6,9 +6,11 @@ import {
   Param,
   Body,
   Get,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CloudinaryService } from 'src/public/cloudinary.service';
 
 @Controller('uploads')
@@ -49,6 +51,7 @@ export class UploadController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post(':userId/:announcementId')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
