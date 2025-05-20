@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers, Req, Res, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Req, Res, Get, Query, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { PaymentService } from './payment.service';
 import { ConfigService } from '@nestjs/config';
@@ -6,6 +6,7 @@ import Stripe from 'stripe';
 import { PricingService } from './services/pricing.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PackageAudience } from './enums/announcement-payment.enums';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('payment')
 export class PaymentController {
@@ -15,6 +16,7 @@ export class PaymentController {
     private configService: ConfigService
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get('/announcement-packages')
   async getAnnouncementPackages(
     @Query('userId') userId: string,
@@ -24,12 +26,14 @@ export class PaymentController {
     return this.pricingService.getAnnouncementPackages(userId, audience);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/promotion-packages')
   async getPromotionPackages(@Query('userId') userId: string) {
     if (!userId) return null;
     return this.pricingService.getPromotionPackages(userId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('create')
   async createPayment(@Body() body: CreatePaymentDto) {
     return this.paymentService.createPaymentSession(body);
