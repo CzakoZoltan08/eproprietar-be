@@ -112,25 +112,28 @@ export class UsersService {
   }
 
   async getFavouriteAnnouncements(id: string) {
-    const userById = await this.userRepo.findOne({
-      where: {
-        id,
-      },
-    });
+    const userById = await this.userRepo.findOne({ where: { id } });
 
-    const favAnnouncements = [];
-    if (userById?.favourites?.length) {
-      await Promise.all(
-        userById.favourites.map(async (announcementId) => {
-          const announcement = await this.announcementService.findOne(
-            announcementId,
-          );
-          favAnnouncements.push(announcement);
-        }),
-      );
+    if (!userById?.favourites?.length) {
+      return [];
     }
 
-    return favAnnouncements;
+    const favAnnouncements = await Promise.all(
+      userById.favourites.map((announcementId) =>
+        this.announcementService.findOne(announcementId),
+      ),
+    );
+
+    const validAnnouncements = favAnnouncements.filter(Boolean);
+
+    // 🧼 Auto-clean invalid favorites
+    const validIds = validAnnouncements.map((a) => a.id);
+    if (validIds.length !== userById.favourites.length) {
+      userById.favourites = validIds;
+      await this.userRepo.save(userById);
+    }
+
+    return validAnnouncements;
   }
 
   findOneByFirebaseId(firebaseId: string) {
