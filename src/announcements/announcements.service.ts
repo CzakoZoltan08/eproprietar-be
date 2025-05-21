@@ -247,9 +247,9 @@ export class AnnouncementsService {
     const announcementId = id;
 
     // Define folders for images and videos
-    const imageFolder = `users/${userId}/announcements/${announcementId}/images`;
-    const videoFolder = `users/${userId}/announcements/${announcementId}/videos`;
-    const announcementFolder = `users/${userId}/announcements/${announcementId}`;
+    const imageFolder = `announcements/${announcementId}/images`;
+    const videoFolder = `announcements/${announcementId}/videos`;
+    const announcementFolder = `announcements/${announcementId}`;
 
     // Delete all related media from Cloudinary
     await this.deleteFilesInFolder(imageFolder, 'image');
@@ -258,9 +258,14 @@ export class AnnouncementsService {
     // Remove announcement from database
     await this.announcementRepo.delete(id);
 
-    await this.cloudinaryService.deleteFolderIfEmpty(imageFolder); // Deletes images and then folder
-    await this.cloudinaryService.deleteFolderIfEmpty(videoFolder); // Deletes videos and then folder
-    await this.cloudinaryService.deleteFolderIfEmpty(announcementFolder); // Deletes announcement folder
+    try{
+      await this.cloudinaryService.deleteFolderIfEmpty(imageFolder); // Deletes images and then folder
+      await this.cloudinaryService.deleteFolderIfEmpty(videoFolder); // Deletes videos and then folder
+      await this.cloudinaryService.deleteFolderIfEmpty(announcementFolder); // Deletes announcement folder
+    }
+    catch (error) {
+      console.error(`Error deleting folder ${announcementFolder}:`, error);
+    }
 
     return `Announcement #${id} and its media have been deleted`;
   }
