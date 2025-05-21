@@ -25,8 +25,8 @@ export class UploadController {
 
     // Fetch images and videos separately
     const [imageResources, videoResources] = await Promise.all([
-      this.cloudinaryService.getResourcesByFolder(folder, "image"),
-      this.cloudinaryService.getResourcesByFolder(folder, "video"),
+      this.cloudinaryService.getResourcesByFolder(`${folder}/images`, "image"),
+      this.cloudinaryService.getResourcesByFolder(`${folder}/videos`, "video"),
     ]);
 
     // Merge both resources
