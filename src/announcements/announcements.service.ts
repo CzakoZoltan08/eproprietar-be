@@ -5,7 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { FindOptionsWhere, In, LessThanOrEqual, Equal, Not, IsNull, LessThan, Repository } from 'typeorm';
+import { FindOptionsWhere, In, LessThanOrEqual, Equal, Not, IsNull, LessThan, Repository, Between } from 'typeorm';
 
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -93,6 +93,12 @@ export class AnnouncementsService {
 
     const maxPriceStr = normalizeFilterValue(filters.price, /^\$lte:\$lte:/);
     if (maxPriceStr) where.price = LessThanOrEqual(Number(maxPriceStr));
+
+    const surfaceStr = normalizeFilterValue(filters.surface, /^\$btw:/);
+    if (surfaceStr) {
+      const [min, max] = surfaceStr.split(',').map(Number);
+      where.surface = Between(min || 0, max || Number.MAX_SAFE_INTEGER);
+    }
 
     const announcementType = normalizeFilterValue(filters.announcementType, /^\$in:/);
     if (announcementType) where.announcementType = Equal(announcementType);
