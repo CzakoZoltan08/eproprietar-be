@@ -231,19 +231,13 @@ export class AnnouncementsService {
   async remove(id: string) {
     // Fetch the announcement with the user relation to get userId
     const announcement = await this.announcementRepo.findOne({
-        where: { id },
-        relations: { user: true }, // Ensure the user relation is loaded
+        where: { id }
     });
 
     if (!announcement) {
         throw new BadRequestException(`Announcement not found.`);
     }
 
-    if (!announcement.user) {
-        throw new BadRequestException(`User for the announcement not found.`);
-    }
-
-    const userId = announcement.user.id; // Now safely access the user ID
     const announcementId = id;
 
     // Define folders for images and videos
