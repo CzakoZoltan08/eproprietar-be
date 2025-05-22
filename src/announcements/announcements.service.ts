@@ -103,6 +103,9 @@ export class AnnouncementsService {
     const announcementType = normalizeFilterValue(filters.announcementType, /^\$in:/);
     if (announcementType) where.announcementType = Equal(announcementType);
 
+    const providerType = normalizeFilterValue(filters.providerType, /^\$in:/);
+    if (providerType) where.providerType = Equal(providerType);
+
     if(announcementType === 'apartament') {
       const roomsStr = normalizeFilterValue(filters.rooms, /^\$eq:\$eq:/);
       if (roomsStr) where.rooms = Equal(Number(roomsStr));
