@@ -4,6 +4,7 @@ import { AnnouncementPayment } from './entities/announcement-payment.entity';
 import { AnnouncementPaymentService } from './services/announcement-payment.service';
 import { AnnouncementsModule } from 'src/announcements/announcements.module';
 import { Discount } from './entities/discount.entity';
+import { MailModule } from 'src/mail/mail.module';
 import { Module } from '@nestjs/common';
 import { PaymentController } from './payment.controller';
 import { PaymentService } from './payment.service';
@@ -15,7 +16,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   providers: [PaymentService, AnnouncementPaymentService, PricingService],
   controllers: [PaymentController],
   exports: [PaymentService, AnnouncementPaymentService, PricingService], // If used in other modules
-  imports: [AnnouncementsModule,
+  imports: [
+    AnnouncementsModule,
+    MailModule,
     TypeOrmModule.forFeature([
       AnnouncementPayment,
       Announcement,

@@ -5,6 +5,7 @@ import { AnnouncementsService } from '../announcements/announcements.service';
 import { ConfigService } from '@nestjs/config';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { CurrencyType } from '../public/enums/currencyTypes.enum';
+import { MailService } from 'src/mail/mail.service';
 import Stripe from 'stripe';
 import axios from 'axios';
 
@@ -16,7 +17,8 @@ export class PaymentService {
   constructor(
     private readonly configService: ConfigService,
     private readonly announcementsService: AnnouncementsService,
-    private readonly announcementPaymentService: AnnouncementPaymentService
+    private readonly announcementPaymentService: AnnouncementPaymentService,
+    private readonly mailService: MailService,
   ) {
     this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY'), {
       apiVersion: '2025-01-27.acacia',
@@ -131,6 +133,24 @@ export class PaymentService {
           const invoiceDetails = metadata.invoiceDetails
             ? JSON.parse(metadata.invoiceDetails)
             : null;
+
+            const announcement = await this.announcementsService.findOne(orderId);
+            if (announcement) {
+              const announcementUrl = `${this.configService.get<string>('FRONTEND_URL')}/announcement/${orderId}`;
+
+              if (announcement.user.email && announcement.user.firstName) {
+                try {
+                  await this.mailService.sendAnnouncementConfirmation(
+                    announcement.user.email,
+                    announcement.user.firstName,
+                    announcementUrl
+                  );
+                } catch (emailError) {
+                  this.logger.warn(`Failed to send announcement email: ${(emailError as Error).message}`);
+                }
+              }
+            }
+            
         
           if (invoiceDetails) {
             await this.sendInvoiceToSmartBill(invoiceDetails, amount, currency);
@@ -193,62 +213,77 @@ export class PaymentService {
     amount: number,
     currency: string
   ) {
-    try {
-      const smartBillUrl = this.configService.get('SMARTBILL_API_URL');
-      const apiToken = this.configService.get('SMARTBILL_API_TOKEN');
-      const username = this.configService.get('SMARTBILL_USERNAME');
-      const cif = this.configService.get('SMARTBILL_COMPANY_CIF');
-      const series = this.configService.get('SMARTBILL_SERIES');
-      const dueDays = parseInt(this.configService.get('SMARTBILL_DUE_DAYS'), 10);
-  
-      const invoicePayload = {
-        companyVatCode: cif,
-        client: {
-          name: invoiceDetails.name,
-          vatCode: invoiceDetails.cif || undefined,
-          address: invoiceDetails.address,
-          city: invoiceDetails.city,
-          country: invoiceDetails.country,
-          email: invoiceDetails.email,
-          isTaxPayer: invoiceDetails.isTaxPayer,
+    const smartBillUrl = this.configService.get('SMARTBILL_API_URL');
+    const apiToken = this.configService.get('SMARTBILL_API_TOKEN');
+    const username = this.configService.get('SMARTBILL_USERNAME');
+    const cif = this.configService.get('SMARTBILL_COMPANY_CIF');
+    const series = this.configService.get('SMARTBILL_SERIES');
+    const dueDays = parseInt(this.configService.get('SMARTBILL_DUE_DAYS'), 10);
+
+    const createPayload = (sendEmail: boolean) => ({
+      companyVatCode: cif,
+      client: {
+        name: invoiceDetails.name,
+        vatCode: invoiceDetails.cif || undefined,
+        address: invoiceDetails.address,
+        city: invoiceDetails.city,
+        country: invoiceDetails.country,
+        email: invoiceDetails.email,
+        isTaxPayer: invoiceDetails.isTaxPayer,
+        saveToDb: false,
+      },
+      issueDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + dueDays * 86400000).toISOString().split('T')[0],
+      deliveryDate: new Date().toISOString().split('T')[0],
+      seriesName: series,
+      currency: currency.toUpperCase(),
+      language: 'RO',
+      isDraft: false,
+      products: [
+        {
+          name: "Pachet afisare anunt",
+          measuringUnitName: "buc",
+          quantity: 1,
+          price: amount,
+          currency: currency.toUpperCase(),
+          isTaxIncluded: true,
+          taxPercentage: 0,
+          isDiscount: false,
           saveToDb: false,
+          isService: true,
         },
-        issueDate: new Date().toISOString().split('T')[0],
-        dueDate: new Date(Date.now() + dueDays * 86400000).toISOString().split('T')[0],
-        deliveryDate: new Date().toISOString().split('T')[0],
-        seriesName: series,
-        currency: currency.toUpperCase(),
-        language: 'RO',
-        isDraft: false,
-        products: [
-          {
-            name: "Pachet afisare anunt",
-            measuringUnitName: "buc",
-            quantity: 1,
-            price: amount,
-            currency: currency.toUpperCase(),
-            isTaxIncluded: true,
-            taxPercentage: 0,
-            isDiscount: false,
-            saveToDb: false,
-            isService: true,
-          },
-        ],
-        sendEmail: false,
-      };
-  
-      const response = await axios.post(`${smartBillUrl}/SBORO/api/invoice`, invoicePayload, {
+      ],
+      sendEmail,
+    });
+
+    try {
+      const payloadWithEmail = createPayload(true);
+      const response = await axios.post(`${smartBillUrl}/SBORO/api/invoice`, payloadWithEmail, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: `Basic ${Buffer.from(`${username}:${apiToken}`).toString('base64')}`,
         },
       });
-  
-      this.logger.log(`Invoice successfully created. Number: ${response.data.number}`);
+
+      this.logger.log(`Invoice successfully created with email. Number: ${response.data.number}`);
     } catch (error) {
-      this.logger.error(`SmartBill Invoice Error: ${(error as Error).message}`);
-      throw new Error('Invoice creation failed');
+      this.logger.warn(`Failed to send invoice with email: ${(error as Error).message}`);
+      try {
+        const payloadWithoutEmail = createPayload(false);
+        const response = await axios.post(`${smartBillUrl}/SBORO/api/invoice`, payloadWithoutEmail, {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Basic ${Buffer.from(`${username}:${apiToken}`).toString('base64')}`,
+          },
+        });
+
+        this.logger.log(`Invoice created without sending email. Number: ${response.data.number}`);
+      } catch (retryError) {
+        this.logger.error(`SmartBill Invoice Retry Failed: ${(retryError as Error).message}`);
+        throw new Error('Invoice creation failed after retry');
+      }
     }
-  }  
+  } 
 }
