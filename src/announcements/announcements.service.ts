@@ -15,6 +15,7 @@ import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 import { UsersService } from '../users/users.service';
 import { AnnouncementPayment } from 'src/payment/entities/announcement-payment.entity';
 import { PaginateQuery, Paginated } from 'nestjs-paginate';
+import { StatusTypes } from 'src/public/enums/statusTypes.enum';
 
 
 function normalizeFilterValue(value: string | string[] | undefined, pattern: RegExp): string | undefined {
@@ -59,6 +60,19 @@ export class AnnouncementsService {
       where: { user: { id: userId } },
       relations: { user: true },
     });
+  }
+
+  /** load all currently active (and not deleted) announcements, with payments */
+  findAllActive(): Promise<Announcement[]> {
+    return this.announcementRepo.find({
+      where: { status: StatusTypes.active, deleted: false },
+      relations: ['user', 'payments', 'payments.package'],
+    });
+  }
+
+  /** patch announcement status */
+  async setStatus(id: string, status: StatusTypes): Promise<void> {
+    await this.announcementRepo.update(id, { status });
   }
 
   buildPaginationLinks(query: PaginateQuery, totalPages: number, currentPage: number): { first?: string; previous?: string; current: string; next?: string; last?: string } {

@@ -5,6 +5,7 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { Agency } from './agency/entities/agency.entity';
 import { AgencyModule } from './agency/agency.module';
 import { Announcement } from './announcements/entities/announcement.entity';
+import { AnnouncementExpirationService } from './announcements/announcement-expiration-service';
 import { AnnouncementPackage } from './payment/entities/announcement-package.entity';
 import { AnnouncementPayment } from './payment/entities/announcement-payment.entity';
 import { AnnouncementsCleanupService } from './announcements/announcements-cleanup.service';
@@ -70,7 +71,7 @@ const ENTITIES = [User, Announcement, Subscription, Agency, PromotionPackage, An
     SeederModule
   ],
   controllers: [AppController],
-  providers: [AppService, AnnouncementsCleanupService],
+  providers: [AppService, AnnouncementsCleanupService, AnnouncementExpirationService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

@@ -10,7 +10,7 @@ export class AnnouncementsCleanupService {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 
   // Run this job every hour to remove old pending announcements
-  @Cron(CronExpression.EVERY_DAY_AT_11PM)
+  @Cron(CronExpression.EVERY_WEEK)
   async deleteExpiredPendingAnnouncements() {
     this.logger.log('Running cleanup for expired pending announcements...');
 
