@@ -59,4 +59,47 @@ export class MailService {
       this.logger.error(`Failed to send user credentials email to ${to}: ${(error as Error).message}`);
     }
   }
+
+  /**
+   * Reminds the user that their announcement is about to expire.
+   */
+  async sendExpirationReminder(
+    to: string,
+    name: string,
+    announcementUrl: string,
+    daysLeft: number,
+  ) {
+    try {
+      const result = await this.mailerService.sendMail({
+        to,
+        subject: `Your announcement expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`,
+        template: 'announcement-expiration-reminder',
+        context: { name, url: announcementUrl, daysLeft },
+      });
+      this.logger.log(`Expiration reminder (${daysLeft}d) sent to ${to}: ${JSON.stringify(result)}`);
+    } catch (err) {
+      this.logger.error(`Failed to send expiration reminder to ${to}: ${(err as Error).message}`);
+    }
+  }
+
+  /**
+   * Notifies the user that their announcement has just expired.
+   */
+  async sendExpiredNotice(
+    to: string,
+    name: string,
+    announcementUrl: string,
+  ) {
+    try {
+      const result = await this.mailerService.sendMail({
+        to,
+        subject: 'Your announcement has expired',
+        template: 'announcement-expired',
+        context: { name, url: announcementUrl },
+      });
+      this.logger.log(`Expired notice sent to ${to}: ${JSON.stringify(result)}`);
+    } catch (err) {
+      this.logger.error(`Failed to send expired notice to ${to}: ${(err as Error).message}`);
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { IConfig } from 'src/public/configuration';
 import { MailController } from './mail.controller';
 import { MailService } from './mail.service';
@@ -9,22 +10,31 @@ import { Module } from '@nestjs/common';
   imports: [
     MailerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService<IConfig>) => ({
+      useFactory: (config: ConfigService<IConfig>) => ({
         transport: {
           host: 'smtp.sendgrid.net',
           port: 587,
+          secure: false,
+          requireTLS: true,
           auth: {
-            user: 'apikey', // Always use 'apikey' for SendGrid
-            pass: configService.get<string>('SENDGRID_API_KEY'),
+            user: 'apikey',
+            pass: config.get<string>('SENDGRID_API_KEY'),
           },
+          tls: { rejectUnauthorized: false },
         },
         defaults: {
-          from: configService.get<string>('SENDGRID_FROM_EMAIL'),
+          from: config.get<string>('SENDGRID_FROM_EMAIL'),
         },
         template: {
           dir: __dirname + '/templates',
-          adapter: new (require('@nestjs-modules/mailer/dist/adapters/handlebars.adapter')).HandlebarsAdapter(),
+          adapter: new HandlebarsAdapter(
+            {
+              // register eq at top‐level
+              eq: (v1: any, v2: any) => v1 === v2,
+            }
+          ),
           options: {
+            // compile‐time strict mode lives here
             strict: true,
           },
         },
@@ -32,7 +42,7 @@ import { Module } from '@nestjs/common';
     }),
   ],
   providers: [MailService],
-  exports: [MailService],
   controllers: [MailController],
+  exports: [MailService],
 })
 export class MailModule {}
