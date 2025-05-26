@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateIf, ValidateNested } from 'class-validator';
 
 import { Type } from 'class-transformer';
 
@@ -74,6 +74,7 @@ export class CreatePaymentDto {
   @IsNumber()
   amount: number;
 
+  @ValidateIf(o => o.amount > 0)
   @IsNumber()
   originalAmount: number;
 
@@ -88,6 +89,7 @@ export class CreatePaymentDto {
   @IsString()
   promotionDiscountCode?: string;
 
+  @ValidateIf(o => o.amount > 0)
   @ValidateNested()
   @Type(() => InvoiceDetailsDto)
   invoiceDetails: InvoiceDetailsDto;
