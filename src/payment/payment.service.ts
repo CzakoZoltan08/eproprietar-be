@@ -46,7 +46,7 @@ export class PaymentService {
           amount: 0,
           originalAmount: 0,
           discountCode,
-          currency: currency.toUpperCase() as CurrencyType,
+          currency: currency?.toLowerCase() as CurrencyType,
           promotionId,
           promotionDiscountCode,
         });
@@ -87,7 +87,7 @@ export class PaymentService {
         cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/create-announcement?failed=true`,
       });
 
-      return { checkoutUrl: session.url };
+      return { skipStripe: false, checkoutUrl: session.url };
     } catch (error) {
       this.logger.error(`Error creating payment session: ${(error as Error).message}`);
       throw new Error('Failed to create payment session');
