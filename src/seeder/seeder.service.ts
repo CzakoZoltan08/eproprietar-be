@@ -19,13 +19,14 @@ export class SeederService implements OnModuleInit {
     await this.seedDiscounts();
   }
 
+  /**
+   * Insert each AnnouncementPackage if its packageType is not already in the DB.
+   */
   async seedPackages() {
     const repo = this.dataSource.getRepository(AnnouncementPackage);
 
-    const count = await repo.count();
-    if (count > 0) return;
-
-    const packages: Partial<AnnouncementPackage>[] = [
+    // Define “canonical” list of packages to ensure are present
+    const desired: Partial<AnnouncementPackage>[] = [
       {
         label: 'Free Package',
         price: 0,
@@ -59,6 +60,14 @@ export class SeederService implements OnModuleInit {
         targetAudience: PackageAudience.NORMAL,
       },
       {
+        label: '20 Days Package',
+        price: 20,
+        currency: CurrencyType.EURO,
+        durationDays: 20,
+        packageType: PaymentPackageType.DAYS_20,
+        targetAudience: PackageAudience.AGENCY,
+      },
+      {
         label: '3 Months Ensemble',
         price: 450,
         currency: CurrencyType.EURO,
@@ -84,17 +93,32 @@ export class SeederService implements OnModuleInit {
       },
     ];
 
-    await repo.save(packages);
-    this.logger.log('Seeded announcement packages.');
+    // Fetch all existing packageType values in the DB
+    const existingRows = await repo.find({
+      select: ['packageType'] as (keyof AnnouncementPackage)[],
+    });
+    const existingTypes = new Set(existingRows.map((row) => row.packageType));
+
+    // Filter out any that already exist
+    const toInsert = desired.filter(
+      (pkg) => !existingTypes.has(pkg.packageType!)
+    );
+
+    if (toInsert.length > 0) {
+      await repo.save(toInsert);
+      this.logger.log(`Seeded ${toInsert.length} missing announcement package(s).`);
+    } else {
+      this.logger.log('No new announcement packages to seed.');
+    }
   }
 
+  /**
+   * Insert each PromotionPackage if its promotionType is not already in the DB.
+   */
   async seedPromotions() {
     const repo = this.dataSource.getRepository(PromotionPackage);
 
-    const count = await repo.count();
-    if (count > 0) return;
-
-    const promotions: Partial<PromotionPackage>[] = [
+    const desired: Partial<PromotionPackage>[] = [
       {
         label: 'Promote 7 Days',
         price: 5,
@@ -118,23 +142,37 @@ export class SeederService implements OnModuleInit {
       },
     ];
 
-    await repo.save(promotions);
-    this.logger.log('Seeded promotion packages.');
+    // Fetch all existing promotionType values
+    const existingRows = await repo.find({
+      select: ['promotionType'] as (keyof PromotionPackage)[],
+    });
+    const existingTypes = new Set(existingRows.map((row) => row.promotionType));
+
+    const toInsert = desired.filter(
+      (promo) => !existingTypes.has(promo.promotionType!)
+    );
+
+    if (toInsert.length > 0) {
+      await repo.save(toInsert);
+      this.logger.log(`Seeded ${toInsert.length} missing promotion package(s).`);
+    } else {
+      this.logger.log('No new promotion packages to seed.');
+    }
   }
 
+  /**
+   * Insert each Discount if its code is not already in the DB.
+   */
   async seedDiscounts() {
     const repo = this.dataSource.getRepository(Discount);
 
-    const count = await repo.count();
-    if (count > 0) return;
-  
     const now = new Date();
     const validFrom = new Date(now.setHours(0, 0, 0, 0)); // Start of today
     const validTo = new Date();
-    validTo.setMonth(validTo.getMonth() + 1);             // 1 month ahead
-    validTo.setHours(23, 59, 59, 999);                    // End of day
-  
-    const discounts: Partial<Discount>[] = [
+    validTo.setMonth(validTo.getMonth() + 1); // 1 month ahead
+    validTo.setHours(23, 59, 59, 999); // End of that day
+
+    const desired: Partial<Discount>[] = [
       {
         code: 'PKG15OFF',
         percentage: 20,
@@ -154,8 +192,20 @@ export class SeederService implements OnModuleInit {
         active: true,
       },
     ];
-  
-    await repo.save(discounts);
-    this.logger.log('✅ Seeded discounts with valid date ranges.');
+
+    // Fetch all existing discount codes
+    const existingRows = await repo.find({
+      select: ['code'] as (keyof Discount)[],
+    });
+    const existingCodes = new Set(existingRows.map((row) => row.code));
+
+    const toInsert = desired.filter((disc) => !existingCodes.has(disc.code!));
+
+    if (toInsert.length > 0) {
+      await repo.save(toInsert);
+      this.logger.log(`Seeded ${toInsert.length} missing discount(s).`);
+    } else {
+      this.logger.log('No new discounts to seed.');
+    }
   }
 }

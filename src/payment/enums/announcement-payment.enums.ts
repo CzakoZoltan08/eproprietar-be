@@ -2,6 +2,7 @@ export enum PaymentPackageType {
     FREE = 'free',
     DAYS_7 = '7_days',
     DAYS_15 = '15_days',
+    DAYS_20 = '20_days',
     UNLIMITED = 'unlimited',
     MONTHS_3 = '3_months',
     MONTHS_6 = '6_months',
@@ -17,4 +18,5 @@ export enum PromotionPackageType {
 export enum PackageAudience {
     NORMAL = 'normal',
     ENSEMBLE = 'ensemble',
+    AGENCY = 'agency',
 }
