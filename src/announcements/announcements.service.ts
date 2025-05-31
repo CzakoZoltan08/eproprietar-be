@@ -210,11 +210,32 @@ export class AnnouncementsService {
   }
 
   async update(id: string, updateAnnouncementDto: UpdateAnnouncementDto) {
+    const { deleteMedia, ...updateData } = updateAnnouncementDto;
     await this.announcementRepo.update(
       id,
-      updateAnnouncementDto,
+      updateData,
     );
 
+    if(updateAnnouncementDto.deleteMedia){
+        // Define folders for images and videos
+      const imageFolder = `announcements/${id}/images`;
+      const videoFolder = `announcements/${id}/videos`;
+      const announcementFolder = `announcements/${id}`;
+
+      // Delete all related media from Cloudinary
+      await this.deleteFilesInFolder(imageFolder, 'image');
+      await this.deleteFilesInFolder(videoFolder, 'video');
+
+      try{
+        await this.cloudinaryService.deleteFolderIfEmpty(imageFolder); // Deletes images and then folder
+        await this.cloudinaryService.deleteFolderIfEmpty(videoFolder); // Deletes videos and then folder
+        await this.cloudinaryService.deleteFolderIfEmpty(announcementFolder); // Deletes announcement folder
+      }
+      catch (error) {
+        console.error(`Error deleting folder ${announcementFolder}:`, error);
+      }
+    }
+    
     return this.findOne(id);
   }
 

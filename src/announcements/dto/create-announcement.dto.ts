@@ -128,4 +128,8 @@ export class CreateAnnouncementDto {
   @IsString()
   @IsOptional()
   sketchUrl: string;
+
+  @IsBoolean()
+  @IsOptional()
+  deleteMedia: boolean = false;
 }
