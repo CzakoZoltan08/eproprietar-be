@@ -43,6 +43,10 @@ export class CreateAnnouncementDto {
   @IsNumber()
   surface: number;
 
+  @IsNumber()
+  @IsOptional()
+  landSurface: number;
+
   @IsString()
   @IsOptional()
   currency: string;

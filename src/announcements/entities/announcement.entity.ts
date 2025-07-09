@@ -89,6 +89,9 @@ export class Announcement {
   surface: number;
 
   @Column({ nullable: true })
+  landSurface: number;
+
+  @Column({ nullable: true })
   schema: string;
 
   @Column({ nullable: true })

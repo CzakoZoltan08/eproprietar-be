@@ -129,6 +129,12 @@ export class AnnouncementsService {
       where.surface = Between(min || 0, max || Number.MAX_SAFE_INTEGER);
     }
 
+    const landSurfaceStr = normalizeFilterValue(filters.landSurface, /^\$btw:/);
+    if (landSurfaceStr) {
+      const [min, max] = landSurfaceStr.split(',').map(Number);
+      where.landSurface = Between(min || 0, max || Number.MAX_SAFE_INTEGER);
+    }
+
     const announcementType = normalizeFilterValue(filters.announcementType, /^\$in:/);
     if (announcementType) where.announcementType = Equal(announcementType);
 
