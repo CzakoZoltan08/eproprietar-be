@@ -3,6 +3,7 @@ export enum AnnouncementType {
   HOUSE = 'casa',
   LAND = 'teren',
   COMMERCIAL_SPACE = 'spatii_comerciale',
+  CABIN = "case_la_tara"
 }
 
 export enum ApartamentPartitionings {

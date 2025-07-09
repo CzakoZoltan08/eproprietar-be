@@ -5,7 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { FindOptionsWhere, In, LessThanOrEqual, Equal, Not, IsNull, LessThan, Repository, Between } from 'typeorm';
+import { FindOptionsWhere, In, LessThanOrEqual, Equal, Not, IsNull, LessThan, Repository, Between, MoreThanOrEqual } from 'typeorm';
 
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -105,8 +105,23 @@ export class AnnouncementsService {
     const county = normalizeFilterValue(filters.county, /^\$in:\$in:/);
     if (county) where.county = In([county]);
 
-    const maxPriceStr = normalizeFilterValue(filters.price, /^\$lte:\$lte:/);
-    if (maxPriceStr) where.price = LessThanOrEqual(Number(maxPriceStr));
+    // 👇 Prefer new min/max price logic if present
+    const priceFilter = filters.price;
+
+    if (typeof priceFilter === 'string') {
+      if (priceFilter.startsWith('$between:')) {
+        const range = priceFilter.replace('$between:', '').split(',');
+        const [min, max] = range.map(Number);
+        if (!isNaN(min) && !isNaN(max)) {
+          where.price = Between(min, max);
+        }
+      } else if (priceFilter.startsWith('$lte:')) {
+        const max = Number(priceFilter.replace('$lte:', ''));
+        if (!isNaN(max)) {
+          where.price = LessThanOrEqual(max);
+        }
+      }
+    }
 
     const surfaceStr = normalizeFilterValue(filters.surface, /^\$btw:/);
     if (surfaceStr) {
