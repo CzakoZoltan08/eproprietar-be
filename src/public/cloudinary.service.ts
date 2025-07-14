@@ -22,11 +22,12 @@ export class CloudinaryService {
 
   getOptimizedUrl(publicId: string, resourceType: 'image' | 'video'): string {
     return cloudinary.url(publicId, {
+      secure: true, // 🔐 Force HTTPS
       resource_type: resourceType,
       transformation: [
         {
-          quality: 'auto', // Automatically adjust quality
-          fetch_format: 'auto', // Automatically select the best format (e.g., WebP for images)
+          quality: 'auto',
+          fetch_format: 'auto',
         },
       ],
     });
