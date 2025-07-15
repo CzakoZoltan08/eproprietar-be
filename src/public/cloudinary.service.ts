@@ -66,35 +66,41 @@ export class CloudinaryService {
   }
 
   async uploadVideoFile(
-    file: Express.Multer.File,
-    folder: string,
-  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
-    return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          folder, 
-          resource_type: 'video', // Ensure videos are treated correctly
-          format: 'mp4', // Convert all videos to MP4
-          transformation: [
-            {
-              width: 1280,
-              height: 720,
-              crop: "limit", // Ensure it doesn't upscale
-              quality: "auto", // Optimize quality dynamically
-              fetch_format: "auto", // Convert to best format
-            },
-            {
-              duration: 120, // Limit video length to 120 seconds
-            },
-          ],
-        },
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        },
-      ).end(file.buffer); // Send the file buffer for upload
-    });
-  }
+  file: Express.Multer.File,
+  folder: string,
+    ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: 'video',
+            // ⚠️ Avoid forcing format here if preset does the same
+            eager: [
+              {
+                width: 1280,
+                height: 720,
+                crop: 'limit',
+                quality: 'auto',
+                fetch_format: 'auto',
+              },
+            ],
+            eager_async: true,
+            // ❌ Don't apply any incoming transformation (especially if a preset exists)
+            // upload_preset: 'your_unsigned_preset_without_transformations', // Optional, only if needed
+          },
+          async (error, result) => {
+            if (error) return reject(error);
+
+            try {
+              const processed = await this.pollUntilVideoProcessed(result.public_id);
+              resolve(processed);
+            } catch (pollError) {
+              reject(pollError);
+            }
+          },
+        ).end(file.buffer);
+      });
+    }
 
   async deleteResources(publicIds: string[], resourceType: 'image' | 'video' = 'image'): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -120,5 +126,41 @@ export class CloudinaryService {
         resolve();
       });
     });
-  }  
+  }
+
+  async pollUntilVideoProcessed(
+  publicId: string,
+  resourceType: 'video' = 'video',
+  intervalMs: number = 5000,
+  timeoutMs: number = 1200000,
+  ): Promise<any> {
+    const startTime = Date.now();
+
+    return new Promise((resolve, reject) => {
+      const check = async () => {
+        try {
+          const result = await cloudinary.api.resource(publicId, {
+            resource_type: resourceType,
+            type: 'upload',
+          });
+
+          // If the derived asset (eager transformation) is ready
+          if (result.derived && result.derived.length > 0) {
+            return resolve(result);
+          }
+
+          // Timeout
+          if (Date.now() - startTime > timeoutMs) {
+            return reject(new Error('Video transformation timed out.'));
+          }
+
+          setTimeout(check, intervalMs);
+        } catch (error) {
+          return reject(error);
+        }
+      };
+
+      check();
+    });
+  }
 }
