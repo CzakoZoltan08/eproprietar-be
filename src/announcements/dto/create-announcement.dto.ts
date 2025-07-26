@@ -60,6 +60,10 @@ export class CreateAnnouncementDto {
 
   @IsString()
   @IsOptional()
+  apartmentTypeOther: string;
+
+  @IsString()
+  @IsOptional()
   partitioning: string;
 
   @IsNumber()

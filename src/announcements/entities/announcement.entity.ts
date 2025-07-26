@@ -98,6 +98,9 @@ export class Announcement {
   description: string;
 
   @Column({ nullable: true })
+  apartmentTypeOther: string;
+
+  @Column({ nullable: true })
   partitioning: string;
 
   @Column({ nullable: true })
