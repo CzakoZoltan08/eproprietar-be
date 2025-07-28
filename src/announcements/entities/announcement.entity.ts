@@ -165,4 +165,58 @@ export class Announcement {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true, default: false })
+  streetFront: boolean;
+
+  @Column("simple-array", { nullable: true })
+  heightRegime: string[];
+
+  @Column({ nullable: true })
+  streetFrontLength: number;
+
+  @Column({ nullable: true })
+  landType: string;
+
+  @Column({ nullable: true })
+  landPlacement: string;
+
+  @Column("simple-array", { nullable: true })
+  urbanismDocuments: string[];
+
+  @Column("simple-json", { nullable: true })
+  utilities: {
+    curent: boolean | null;
+    apa: boolean | null;
+    canalizare: boolean | null;
+    gaz: boolean | null;
+  };
+
+  // === Spatii comerciale ===
+  @Column({ nullable: true })
+  commercialSpaceType: string; // Tip spațiu: comercial, birouri, industrial
+
+  @Column({ nullable: true })
+  usableSurface: number; // Suprafață utilă (mp)
+
+  @Column({ nullable: true })
+  builtSurface: number; // Suprafață construită (mp)
+
+  @Column({ nullable: true })
+  spaceHeight: number; // Înălțime spațiu (m)
+
+  @Column({ nullable: true })
+  hasStreetWindow: boolean; // Vitrină la stradă: Da / Nu
+
+  @Column({ nullable: true })
+  streetWindowLength: number; // Front vitrină la stradă (ml)
+
+  @Column({ nullable: true })
+  hasStreetEntrance: boolean; // Intrare din stradă: Da / Nu
+
+  @Column({ nullable: true })
+  hasLift: boolean; // Lift: Da / Nu
+
+  @Column("simple-array", { nullable: true })
+  vehicleAccess: string[]; // Acces auto: TIR, Autocar, Camioane, Autoturism
 }

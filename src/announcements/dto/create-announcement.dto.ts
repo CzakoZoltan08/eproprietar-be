@@ -94,7 +94,7 @@ export class CreateAnnouncementDto {
   apartamentPartitioning: string;
 
   @IsOptional()
-  @IsOptional()
+  @IsBoolean()
   deleted: boolean;
 
   @IsString()
@@ -140,4 +140,75 @@ export class CreateAnnouncementDto {
   @IsBoolean()
   @IsOptional()
   deleteMedia: boolean = false;
+
+  @IsBoolean()
+  @IsOptional()
+  streetFront: boolean;
+
+  @IsOptional()
+  @IsString({ each: true })
+  heightRegime: string[];
+
+  // ✅ NEW FOR TEREN
+
+  @IsNumber()
+  @IsOptional()
+  streetFrontLength: number; // ml
+
+  @IsString()
+  @IsOptional()
+  landType: string; // Constructii, Agricol, etc.
+
+  @IsString()
+  @IsOptional()
+  landPlacement: string; // Intravilan, Extravilan
+
+  @IsOptional()
+  @IsString({ each: true })
+  urbanismDocuments: string[];
+
+  @IsOptional()
+  @IsObject()
+  utilities: {
+    curent: boolean | null;
+    apa: boolean | null;
+    canalizare: boolean | null;
+    gaz: boolean | null;
+  };
+
+  @IsString()
+  @IsOptional()
+  commercialSpaceType: string;
+
+  @IsNumber()
+  @IsOptional()
+  usableSurface: number;
+
+  @IsNumber()
+  @IsOptional()
+  builtSurface: number;
+
+  @IsNumber()
+  @IsOptional()
+  spaceHeight: number;
+
+  @IsBoolean()
+  @IsOptional()
+  hasStreetWindow: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  streetWindowLength: number;
+
+  @IsBoolean()
+  @IsOptional()
+  hasStreetEntrance: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  hasLift: boolean;
+
+  @IsOptional()
+  @IsString({ each: true })
+  vehicleAccess: string[];
 }
