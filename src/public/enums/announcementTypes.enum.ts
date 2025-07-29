@@ -2,7 +2,7 @@ export enum AnnouncementType {
   APPARTMENT = 'apartament',
   HOUSE = 'casa',
   LAND = 'teren',
-  COMMERCIAL_SPACE = 'spatii_comerciale',
+  COMMERCIAL_SPACE = 'comercial',
   CABIN = "case_la_tara"
 }
 
