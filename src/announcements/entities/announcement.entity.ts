@@ -242,5 +242,11 @@ export class Announcement {
   developerSite: string;                // URL site dezvoltator
 
   @Column({ nullable: true })
-  frameType: string;                    
+  frameType: string;
+  
+  @Column({ nullable: true })
+  flyerUrl: string;
+
+  @Column({ nullable: true })
+  flyerMimeType: string; // "application/pdf" | "image/png" | etc.
 }

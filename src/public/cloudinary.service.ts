@@ -163,4 +163,140 @@ export class CloudinaryService {
       check();
     });
   }
+
+  /**
+   * Uploads a flyer (image or PDF).
+   * - images: resource_type=image (transform as image)
+   * - pdf:    resource_type=raw   (store original), plus preview image URL exposed by helper
+   */
+  async uploadFlyerFile(
+    file: Express.Multer.File,
+    folder: string,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    const isPdf = (file.mimetype || '').toLowerCase().includes('pdf');
+    const isImage = (file.mimetype || '').toLowerCase().startsWith('image/');
+
+    if (!isPdf && !isImage) {
+      throw new Error('Flyer must be an image or a PDF.');
+    }
+
+    // Size limits (tune as you like):
+    if (isImage && file.size > 10 * 1024 * 1024) {
+      throw new Error('Image flyer size exceeds 10MB limit.');
+    }
+    if (isPdf && file.size > 50 * 1024 * 1024) {
+      throw new Error('PDF flyer size exceeds 50MB limit.');
+    }
+
+    return new Promise((resolve, reject) => {
+      if (isImage) {
+        // Upload as image with safe transforms (similar to your image uploader)
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder,
+              resource_type: 'image',
+              // keep original format to preserve possible transparency; or force jpg if you prefer
+              transformation: [
+                {
+                  width: 1920,
+                  height: 1080,
+                  crop: 'limit',
+                  quality: 'auto',
+                  fetch_format: 'auto',
+                },
+              ],
+            },
+            (error, result) => (error ? reject(error) : resolve(result)),
+          )
+          .end(file.buffer);
+      } else {
+        // PDF → store as raw (original file). We'll generate preview via image delivery.
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder,
+              resource_type: 'raw',
+            },
+            (error, result) => (error ? reject(error) : resolve(result)),
+          )
+          .end(file.buffer);
+      }
+    });
+  }
+
+  /**
+   * For a stored PDF (resource_type=raw), build a preview JPG URL for page 1.
+   * We ask Cloudinary to render the PDF as an image (resource_type=image).
+   */
+  getPdfPreviewUrl(publicId: string): string {
+    return cloudinary.url(publicId, {
+      secure: true,
+      resource_type: 'image', // render as image
+      page: 1,
+      format: 'jpg',
+      transformation: [
+        { width: 1920, height: 1080, crop: 'limit', quality: 'auto', fetch_format: 'auto' },
+      ],
+    });
+  }
+
+  /**
+   * Get flyer resource(s) for an announcement:
+   * - an image flyer (resource_type=image) under /flyer
+   * - or a raw PDF (resource_type=raw) under /flyer
+   * Return at most one latest flyer, or list if you prefer.
+   */
+  async getFlyerResource(folder: string): Promise<
+    | {
+        public_id: string;
+        secure_url: string;
+        resource_type: 'image' | 'raw';
+        format?: string;
+        mime_type?: string;
+        preview_url?: string; // for pdf
+      }
+    | null
+  > {
+    const imageFolder = `${folder}/flyer`;
+    // Try image first
+    const imageRes: any[] = await this.getResourcesByFolder(imageFolder, 'image').catch(() => []);
+    if (imageRes?.length) {
+      // pick the latest
+      const r = imageRes[0];
+      return {
+        public_id: r.public_id,
+        secure_url: this.getOptimizedUrl(r.public_id, 'image'),
+        resource_type: 'image',
+        format: r.format,
+        mime_type: r.mime_type,
+      };
+    }
+
+    // Then raw (pdf)
+    const rawRes: any[] = await new Promise<any[]>((resolve, reject) => {
+      cloudinary.api.resources(
+        {
+          type: 'upload',
+          prefix: imageFolder,
+          resource_type: 'raw',
+        },
+        (error, result) => (error ? reject(error) : resolve(result.resources as any[])),
+      );
+    }).catch(() => [] as any[]);
+
+    if (rawRes?.length) {
+      const r = rawRes[0];
+      return {
+        public_id: r.public_id,
+        secure_url: r.secure_url, // original raw url
+        resource_type: 'raw',
+        format: r.format,
+        mime_type: r.mime_type,
+        preview_url: this.getPdfPreviewUrl(r.public_id),
+      };
+    }
+
+    return null;
+  }
 }

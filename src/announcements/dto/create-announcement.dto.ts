@@ -246,4 +246,11 @@ export class CreateAnnouncementDto {
   @IsOptional()
   frameType: string;
 
+  @IsString()
+  @IsOptional()
+  flyerUrl: string;
+
+  @IsString()
+  @IsOptional()
+  flyerMimeType: string;
 }
