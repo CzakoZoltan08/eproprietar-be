@@ -119,6 +119,12 @@ export class Announcement {
   parking: string;
 
   @Column({ nullable: true })
+  balconyCount: number;
+
+  @Column({ nullable: true })
+  parkingCount: number;
+
+  @Column({ nullable: true })
   stage: string;
 
   @Column({ nullable: true })
@@ -219,4 +225,22 @@ export class Announcement {
 
   @Column("simple-array", { nullable: true })
   vehicleAccess: string[]; // Acces auto: TIR, Autocar, Camioane, Autoturism
+
+  @Column({ nullable: true })
+  neighborhood: string;                 // Cartier / zonă
+
+  @Column({ nullable: true })
+  constructionStart: string;            // ISO (prima zi a lunii)
+
+  @Column({ nullable: true })
+  floorsCount: number;                  // Nr. de etaje
+
+  @Column("simple-array", { nullable: true })
+  amenities: string[];                  // Facilități
+
+  @Column({ nullable: true })
+  developerSite: string;                // URL site dezvoltator
+
+  @Column({ nullable: true })
+  frameType: string;                    
 }

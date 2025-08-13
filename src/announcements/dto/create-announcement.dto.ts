@@ -4,6 +4,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUrl,
 } from 'class-validator';
 
 import { DeepPartial } from 'typeorm';
@@ -104,6 +105,14 @@ export class CreateAnnouncementDto {
   @IsString()
   @IsOptional()
   parking: string;
+
+  @IsString()
+  @IsOptional()
+  balconyCount: number;
+
+  @IsString()
+  @IsOptional()
+  parkingCount?: number;
 
   @IsNumber()
   @IsOptional()
@@ -211,4 +220,30 @@ export class CreateAnnouncementDto {
   @IsOptional()
   @IsString({ each: true })
   vehicleAccess: string[];
+
+  @IsString()
+  @IsOptional()
+  neighborhood: string;
+
+  @IsString()        // sau:
+  // @IsISO8601()    // ← dacă vrei validare strict ISO
+  @IsOptional()
+  constructionStart: string;
+
+  @IsNumber()
+  @IsOptional()
+  floorsCount: number;
+
+  @IsOptional()
+  @IsString({ each: true })
+  amenities: string[];
+
+  @IsUrl({ require_protocol: true }, { message: 'developerSite must be a valid URL' })
+  @IsOptional()
+  developerSite: string;
+
+  @IsString()
+  @IsOptional()
+  frameType: string;
+
 }

@@ -27,5 +27,7 @@ export enum BalconyTypes {
   termopan = 'Inchis termopan',
   sticla = 'Inchis sticla',
   deschis = 'Deschis',
+  logie = "Logie",
+  terasa = "Terasa",
   fara = 'Nu are',
 }
