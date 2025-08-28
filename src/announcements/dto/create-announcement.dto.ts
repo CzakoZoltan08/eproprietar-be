@@ -106,11 +106,11 @@ export class CreateAnnouncementDto {
   @IsOptional()
   parking: string;
 
-  @IsString()
+  @IsNumber()
   @IsOptional()
   balconyCount: number;
 
-  @IsString()
+  @IsNumber()
   @IsOptional()
   parkingCount?: number;
 
