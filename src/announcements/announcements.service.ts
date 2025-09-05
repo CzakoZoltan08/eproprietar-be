@@ -5,7 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { FindOptionsWhere, In, LessThanOrEqual, Equal, Not, IsNull, LessThan, Repository, Between } from 'typeorm';
+import { FindOptionsWhere, In, LessThanOrEqual, Equal, Not, IsNull, LessThan, Repository, Between, MoreThanOrEqual } from 'typeorm';
 
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -105,13 +105,32 @@ export class AnnouncementsService {
     const county = normalizeFilterValue(filters.county, /^\$in:\$in:/);
     if (county) where.county = In([county]);
 
-    const maxPriceStr = normalizeFilterValue(filters.price, /^\$lte:\$lte:/);
-    if (maxPriceStr) where.price = LessThanOrEqual(Number(maxPriceStr));
+    const priceFilter = filters.price;
+    if (typeof priceFilter === 'string') {
+      if (priceFilter.startsWith('$between:')) {
+        const range = priceFilter.replace('$between:', '').split(',');
+        const [min, max] = range.map(Number);
+        if (!isNaN(min) && !isNaN(max)) {
+          where.price = Between(min, max);
+        }
+      } else if (priceFilter.startsWith('$lte:')) {
+        const max = Number(priceFilter.replace('$lte:', ''));
+        if (!isNaN(max)) {
+          where.price = LessThanOrEqual(max);
+        }
+      }
+    }
 
     const surfaceStr = normalizeFilterValue(filters.surface, /^\$btw:/);
     if (surfaceStr) {
       const [min, max] = surfaceStr.split(',').map(Number);
       where.surface = Between(min || 0, max || Number.MAX_SAFE_INTEGER);
+    }
+
+    const landSurfaceStr = normalizeFilterValue(filters.landSurface, /^\$btw:/);
+    if (landSurfaceStr) {
+      const [min, max] = landSurfaceStr.split(',').map(Number);
+      where.landSurface = Between(min || 0, max || Number.MAX_SAFE_INTEGER);
     }
 
     const announcementType = normalizeFilterValue(filters.announcementType, /^\$in:/);
@@ -120,14 +139,13 @@ export class AnnouncementsService {
     const providerType = normalizeFilterValue(filters.providerType, /^\$in:/);
     if (providerType) where.providerType = Equal(providerType);
 
-    if(announcementType === 'apartament') {
+    if (announcementType === 'apartament') {
       const roomsStr = normalizeFilterValue(filters.rooms, /^\$eq:\$eq:/);
       if (roomsStr) where.rooms = Equal(Number(roomsStr));
     }
 
     const userId = normalizeFilterValue(filters.user, /^\$eq:/);
     if (userId) where.user = { id: userId };
-
 
     const transactionType = normalizeFilterValue(filters.transactionType, /^\$in:/);
     if (transactionType) where.transactionType = Equal(transactionType);
@@ -137,44 +155,44 @@ export class AnnouncementsService {
 
     const announcements = await this.announcementRepo.find({
       where,
-      relations: ['user', 'agency'],
+      relations: ['user', 'agency', 'payments'],
     });
 
-    // Promotion lookup
-    const promotedIds = announcements.filter(a => a.isPromoted).map(a => a.id);
+    const now = new Date();
 
-    const promotionPayments = await this.announcementRepo.manager.find(AnnouncementPayment, {
-      where: {
-        promotion: { id: Not(IsNull()) },
-        announcement: { id: In(promotedIds) },
-      },
-      relations: ['announcement'],
-      order: { createdAt: 'DESC' },
+    // Determine active promotions
+    const enriched = announcements.map((a) => {
+      const latestPromotion = [...(a.payments || [])]
+        .filter((p) => p.promotionEndDate && p.promotionEndDate > now)
+        .sort((a, b) => new Date(b.promotionEndDate).getTime() - new Date(a.promotionEndDate).getTime())[0];
+
+      const isPromoted = !!latestPromotion;
+      const promoDate = latestPromotion?.promotionEndDate ?? null;
+
+      return {
+        announcement: a,
+        isPromoted,
+        promoDate,
+      };
     });
 
-    const latestPromoDateMap = new Map<string, Date>();
-    for (const payment of promotionPayments) {
-      const annId = payment.announcement.id;
-      if (!latestPromoDateMap.has(annId)) {
-        latestPromoDateMap.set(annId, payment.createdAt);
-      }
-    }
-
-    const enriched = announcements.map(a => ({
-      announcement: a,
-      isPromoted: a.isPromoted,
-      promoDate: latestPromoDateMap.get(a.id) ?? null,
-    }));
-
+    // Sort: promoted first, then by promotionEndDate, then createdAt
     enriched.sort((a, b) => {
       if (a.isPromoted !== b.isPromoted) return a.isPromoted ? -1 : 1;
+
       const dateA = a.promoDate?.getTime() ?? 0;
       const dateB = b.promoDate?.getTime() ?? 0;
       if (dateA !== dateB) return dateB - dateA;
+
       return new Date(b.announcement.createdAt).getTime() - new Date(a.announcement.createdAt).getTime();
     });
 
-    const sortedAnnouncements = enriched.map(e => e.announcement);
+    // Add isPromoted flag to announcements
+    const sortedAnnouncements = enriched.map((e) => ({
+      ...e.announcement,
+      isPromoted: e.isPromoted,
+    }));
+
     const total = sortedAnnouncements.length;
     const page = query.page ?? 1;
     const limit = query.limit ?? total;

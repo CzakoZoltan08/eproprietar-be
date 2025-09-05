@@ -4,6 +4,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUrl,
 } from 'class-validator';
 
 import { DeepPartial } from 'typeorm';
@@ -43,6 +44,10 @@ export class CreateAnnouncementDto {
   @IsNumber()
   surface: number;
 
+  @IsNumber()
+  @IsOptional()
+  landSurface: number;
+
   @IsString()
   @IsOptional()
   currency: string;
@@ -53,6 +58,10 @@ export class CreateAnnouncementDto {
 
   @IsString()
   description: string;
+
+  @IsString()
+  @IsOptional()
+  apartmentTypeOther: string;
 
   @IsString()
   @IsOptional()
@@ -86,7 +95,7 @@ export class CreateAnnouncementDto {
   apartamentPartitioning: string;
 
   @IsOptional()
-  @IsOptional()
+  @IsBoolean()
   deleted: boolean;
 
   @IsString()
@@ -96,6 +105,14 @@ export class CreateAnnouncementDto {
   @IsString()
   @IsOptional()
   parking: string;
+
+  @IsNumber()
+  @IsOptional()
+  balconyCount: number;
+
+  @IsNumber()
+  @IsOptional()
+  parkingCount?: number;
 
   @IsNumber()
   @IsOptional()
@@ -132,4 +149,108 @@ export class CreateAnnouncementDto {
   @IsBoolean()
   @IsOptional()
   deleteMedia: boolean = false;
+
+  @IsBoolean()
+  @IsOptional()
+  streetFront: boolean;
+
+  @IsOptional()
+  @IsString({ each: true })
+  heightRegime: string[];
+
+  // ✅ NEW FOR TEREN
+
+  @IsNumber()
+  @IsOptional()
+  streetFrontLength: number; // ml
+
+  @IsString()
+  @IsOptional()
+  landType: string; // Constructii, Agricol, etc.
+
+  @IsString()
+  @IsOptional()
+  landPlacement: string; // Intravilan, Extravilan
+
+  @IsOptional()
+  @IsString({ each: true })
+  urbanismDocuments: string[];
+
+  @IsOptional()
+  @IsObject()
+  utilities: {
+    curent: boolean | null;
+    apa: boolean | null;
+    canalizare: boolean | null;
+    gaz: boolean | null;
+  };
+
+  @IsString()
+  @IsOptional()
+  commercialSpaceType: string;
+
+  @IsNumber()
+  @IsOptional()
+  usableSurface: number;
+
+  @IsNumber()
+  @IsOptional()
+  builtSurface: number;
+
+  @IsNumber()
+  @IsOptional()
+  spaceHeight: number;
+
+  @IsBoolean()
+  @IsOptional()
+  hasStreetWindow: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  streetWindowLength: number;
+
+  @IsBoolean()
+  @IsOptional()
+  hasStreetEntrance: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  hasLift: boolean;
+
+  @IsOptional()
+  @IsString({ each: true })
+  vehicleAccess: string[];
+
+  @IsString()
+  @IsOptional()
+  neighborhood: string;
+
+  @IsString()        // sau:
+  // @IsISO8601()    // ← dacă vrei validare strict ISO
+  @IsOptional()
+  constructionStart: string;
+
+  @IsNumber()
+  @IsOptional()
+  floorsCount: number;
+
+  @IsOptional()
+  @IsString({ each: true })
+  amenities: string[];
+
+  @IsUrl({ require_protocol: true }, { message: 'developerSite must be a valid URL' })
+  @IsOptional()
+  developerSite: string;
+
+  @IsString()
+  @IsOptional()
+  frameType: string;
+
+  @IsString()
+  @IsOptional()
+  flyerUrl: string;
+
+  @IsString()
+  @IsOptional()
+  flyerMimeType: string;
 }

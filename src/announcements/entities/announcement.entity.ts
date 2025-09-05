@@ -89,10 +89,16 @@ export class Announcement {
   surface: number;
 
   @Column({ nullable: true })
+  landSurface: number;
+
+  @Column({ nullable: true })
   schema: string;
 
   @Column({ nullable: true })
   description: string;
+
+  @Column({ nullable: true })
+  apartmentTypeOther: string;
 
   @Column({ nullable: true })
   partitioning: string;
@@ -111,6 +117,12 @@ export class Announcement {
 
   @Column({ nullable: true, enum: ParkingTypes })
   parking: string;
+
+  @Column({ nullable: true })
+  balconyCount: number;
+
+  @Column({ nullable: true })
+  parkingCount: number;
 
   @Column({ nullable: true })
   stage: string;
@@ -159,4 +171,82 @@ export class Announcement {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true, default: false })
+  streetFront: boolean;
+
+  @Column("simple-array", { nullable: true })
+  heightRegime: string[];
+
+  @Column({ nullable: true })
+  streetFrontLength: number;
+
+  @Column({ nullable: true })
+  landType: string;
+
+  @Column({ nullable: true })
+  landPlacement: string;
+
+  @Column("simple-array", { nullable: true })
+  urbanismDocuments: string[];
+
+  @Column("simple-json", { nullable: true })
+  utilities: {
+    curent: boolean | null;
+    apa: boolean | null;
+    canalizare: boolean | null;
+    gaz: boolean | null;
+  };
+
+  // === Spatii comerciale ===
+  @Column({ nullable: true })
+  commercialSpaceType: string; // Tip spațiu: comercial, birouri, industrial
+
+  @Column({ nullable: true })
+  usableSurface: number; // Suprafață utilă (mp)
+
+  @Column({ nullable: true })
+  builtSurface: number; // Suprafață construită (mp)
+
+  @Column({ nullable: true })
+  spaceHeight: number; // Înălțime spațiu (m)
+
+  @Column({ nullable: true })
+  hasStreetWindow: boolean; // Vitrină la stradă: Da / Nu
+
+  @Column({ nullable: true })
+  streetWindowLength: number; // Front vitrină la stradă (ml)
+
+  @Column({ nullable: true })
+  hasStreetEntrance: boolean; // Intrare din stradă: Da / Nu
+
+  @Column({ nullable: true })
+  hasLift: boolean; // Lift: Da / Nu
+
+  @Column("simple-array", { nullable: true })
+  vehicleAccess: string[]; // Acces auto: TIR, Autocar, Camioane, Autoturism
+
+  @Column({ nullable: true })
+  neighborhood: string;                 // Cartier / zonă
+
+  @Column({ nullable: true })
+  constructionStart: string;            // ISO (prima zi a lunii)
+
+  @Column({ nullable: true })
+  floorsCount: number;                  // Nr. de etaje
+
+  @Column("simple-array", { nullable: true })
+  amenities: string[];                  // Facilități
+
+  @Column({ nullable: true })
+  developerSite: string;                // URL site dezvoltator
+
+  @Column({ nullable: true })
+  frameType: string;
+  
+  @Column({ nullable: true })
+  flyerUrl: string;
+
+  @Column({ nullable: true })
+  flyerMimeType: string; // "application/pdf" | "image/png" | etc.
 }

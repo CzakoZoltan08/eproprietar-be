@@ -2,7 +2,8 @@ export enum AnnouncementType {
   APPARTMENT = 'apartament',
   HOUSE = 'casa',
   LAND = 'teren',
-  COMMERCIAL_SPACE = 'spatii_comerciale',
+  COMMERCIAL_SPACE = 'comercial',
+  CABIN = "case_la_tara"
 }
 
 export enum ApartamentPartitionings {
@@ -26,5 +27,7 @@ export enum BalconyTypes {
   termopan = 'Inchis termopan',
   sticla = 'Inchis sticla',
   deschis = 'Deschis',
+  logie = "Logie",
+  terasa = "Terasa",
   fara = 'Nu are',
 }
