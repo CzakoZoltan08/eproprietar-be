@@ -136,7 +136,7 @@ export class PaymentService {
 
             const announcement = await this.announcementsService.findOne(orderId);
             if (announcement) {
-              const announcementUrl = `${this.configService.get<string>('FRONTEND_URL')}/announcement/${orderId}`;
+              const announcementUrl = `${this.configService.get<string>('FRONTEND_URL')}/announcements/${orderId}`;
 
               if (announcement.user.email && announcement.user.firstName) {
                 try {
