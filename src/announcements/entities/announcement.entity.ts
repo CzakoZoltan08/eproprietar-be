@@ -107,7 +107,7 @@ export class Announcement {
   baths: number;
 
   @Column({ nullable: true })
-  floor: number;
+  floor: string;
 
   @Column({ nullable: true })
   isNew: boolean;
