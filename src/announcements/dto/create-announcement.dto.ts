@@ -71,9 +71,9 @@ export class CreateAnnouncementDto {
   @IsOptional()
   number: number;
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  floor: number;
+  floor: string;
 
   @IsBoolean()
   @IsOptional()
