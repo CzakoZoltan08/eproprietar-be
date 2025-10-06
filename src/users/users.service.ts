@@ -9,13 +9,15 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthProvider, User } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { CreateUserRequestDto, CreateUserResponseDto } from './dto/create-user-request.dto';
+import { Raw, Repository } from 'typeorm';
+import {
+  CreateUserRequestDto,
+  CreateUserResponseDto,
+} from './dto/create-user-request.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AnnouncementsService } from '../announcements/announcements.service';
 import { CreateFirebaseUserDto } from './dto/create-firebase-user.dto';
 import * as admin from 'firebase-admin';
-import * as crypto from 'crypto';
 import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
@@ -32,25 +34,26 @@ export class UsersService {
 
   @Post()
   async create(@Body() createUserDto: CreateUserRequestDto): Promise<User> {
-    console.log('Incoming CreateUserRequestDto:', createUserDto);
-  
-    const foundUser = await this.findByEmail(createUserDto.email);
-    if (foundUser) {
-      return foundUser;
+    // 🔒 Normalize email
+    if (createUserDto?.email) {
+      createUserDto.email = createUserDto.email.trim().toLowerCase();
     }
-  
+
+    // ✅ Idempotent create: return existing if present
+    const existing = await this.findByEmail(createUserDto.email);
+    if (existing) return existing;
+
     return this.userRepo.save(createUserDto);
   }
 
   async createFirebaseUser(
     createFirebaseUserDto: CreateFirebaseUserDto,
   ): Promise<CreateUserResponseDto> {
-    const { email, firstName, lastName } = createFirebaseUserDto;
+    const email = createFirebaseUserDto.email.trim().toLowerCase();
+    const { firstName, lastName } = createFirebaseUserDto;
 
     // Generate a one-time password (e.g., a 16-character hex string)
-    const generatedPassword = require('crypto')
-      .randomBytes(8)
-      .toString('hex');
+    const generatedPassword = require('crypto').randomBytes(8).toString('hex');
 
     try {
       // Create the user in Firebase Auth using the Admin SDK
@@ -72,9 +75,9 @@ export class UsersService {
         favourites: [],
       };
 
-      // Insert the user into your database using your existing logic.
+      // Insert (idempotent via create()).
       const newUser = await this.create(newUserDto);
-      const displayName = `${newUser.firstName} ${newUser.lastName}`;
+      const displayName = `${newUser.firstName} ${newUser.lastName}`.trim();
 
       // Send an email with the login credentials.
       await this.mailService.sendUserCredentials(
@@ -88,7 +91,7 @@ export class UsersService {
       const responseDto: CreateUserResponseDto = {
         id: newUser.id,
         email: newUser.email,
-        displayName: displayName,
+        displayName,
         firebaseId: newUser.firebaseId,
         phoneNumber: newUser.phoneNumber,
       };
@@ -105,9 +108,7 @@ export class UsersService {
 
   findOne(id: string) {
     return this.userRepo.findOne({
-      where: {
-        id,
-      },
+      where: { id },
     });
   }
 
@@ -138,20 +139,16 @@ export class UsersService {
 
   findOneByFirebaseId(firebaseId: string) {
     return this.userRepo.findOne({
-      where: {
-        firebaseId,
-      },
+      where: { firebaseId },
     });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     await this.userRepo.update(id, updateUserDto);
-
     return this.findOne(id);
   }
 
   async delete(id: string) {
-    // Retrieve the user from the DB
     const user = await this.findOne(id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -159,7 +156,6 @@ export class UsersService {
 
     // Delete all announcements created by this user
     const announcementsByUser = await this.announcementService.findByUserId(id);
-
     for (const announcement of announcementsByUser) {
       await this.announcementService.remove(announcement.id);
     }
@@ -169,29 +165,26 @@ export class UsersService {
       try {
         await this.firebaseAdmin.auth().deleteUser(user.firebaseId);
       } catch (error) {
-        console.error(`Failed to delete Firebase user with ID ${user.firebaseId}`, error);
+        console.error(
+          `Failed to delete Firebase user with ID ${user.firebaseId}`,
+          error,
+        );
         throw new BadRequestException('Error deleting user from Firebase.');
       }
     }
 
-    // Finally, delete the user from your local DB
     return this.userRepo.delete(id);
   }
 
+  // ✅ Case-insensitive, trimmed lookup
   async findByEmail(email: string): Promise<User | null> {
-    // Validate the input
-    if (!email || typeof email !== 'string') {
-      console.warn('Invalid email provided');
-      return null; // Return null if email is not valid
-    }
-  
-    // Query the repository
-    const user = await this.userRepo.findOne({
+    if (!email || typeof email !== 'string') return null;
+    const normalized = email.trim().toLowerCase();
+
+    return this.userRepo.findOne({
       where: {
-        email,
+        email: Raw((alias) => `LOWER(${alias}) = :e`, { e: normalized }),
       },
     });
-  
-    return user || null;
   }
 }

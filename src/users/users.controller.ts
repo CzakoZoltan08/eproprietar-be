@@ -7,8 +7,10 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
   UseInterceptors,
+  NotFoundException,
 } from '@nestjs/common';
 import { TransformInterceptor } from '../public/interceptors/transform.interceptor';
 import { UsersService } from './users.service';
@@ -49,9 +51,12 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get('/by-email/:email')
-  getByEmail(@Param('email') email: string) {
-    return this.usersService.findByEmail(email);
+  // ✅ Use query param; return 404 when not found
+  @Get('/by-email')
+  async getByEmail(@Query('email') email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new NotFoundException();
+    return user;
   }
 
   @UseGuards(FirebaseAuthGuard)
