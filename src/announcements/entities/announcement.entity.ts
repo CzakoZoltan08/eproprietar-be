@@ -144,6 +144,9 @@ export class Announcement {
 
   @Column({ nullable: true })
   developerName: string;
+
+  @Column({ nullable: true })
+  phoneContactName: string; 
   
   @Column({ nullable: true })
   phoneContact: string;
