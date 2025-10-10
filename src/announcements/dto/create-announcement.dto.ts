@@ -140,6 +140,10 @@ export class CreateAnnouncementDto {
 
   @IsString()
   @IsOptional()
+  phoneContactName: string;
+
+  @IsString()
+  @IsOptional()
   phoneContact: string;
 
   @IsString()
