@@ -19,7 +19,7 @@ export class AnnouncementExpirationService {
     private readonly config: ConfigService,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_8AM)
+  @Cron(CronExpression.EVERY_MINUTE)
   async handleExpirations() {
     this.logger.log('🕑 Checking announcements for upcoming expiration…');
     const announcements = await this.announcementsService.findAllActive();
